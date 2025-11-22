@@ -60,6 +60,12 @@
             overscroll-behavior-y: none;
         }
 
+        /* PUNTO 1: Transiciones Suaves */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         h2, h3 { color: var(--text-main); text-align: center; }
         h2 { font-size: 1.3em; margin-top: 20px; color: var(--primary-dark); }
         
@@ -70,8 +76,15 @@
         }
         #appLogo { font-size: 1em; font-weight: bold; color: var(--primary-color); }
         
-        .pantalla { display: none; padding: 15px; }
-        .pantalla.activa { display: block; }
+        .pantalla { 
+            display: none; 
+            padding: 15px; 
+        }
+        /* Aplicamos la animación solo cuando está activa */
+        .pantalla.activa { 
+            display: block; 
+            animation: fadeIn 0.3s ease-out forwards;
+        }
 
         .form-group { margin-bottom: 10px; }
         label { display: block; margin-bottom: 3px; font-weight: bold; font-size: 0.9em; }
@@ -158,7 +171,6 @@
             background-color: var(--bg-card); padding: 15px; border-radius: 8px;
             box-shadow: var(--shadow-sm); margin-top: 20px;
         }
-        /* PUNTO 1: Charts más grandes */
         .chart-container {
             height: 350px;
             position: relative;
@@ -435,7 +447,7 @@ const TRADUCTIONS = {
         alertMissing: "Rellena todos los campos.", alertGuardado: "¡Guardado!",
         confirmDelete: "¿Eliminar?", confirmDeleteAll: "¿BORRAR TODO?",
         alertNoExport: "Sin datos.", alertCSVEmpty: "Vacío.",
-        alertImportSuccess: (c) => `Importados ${c}.`, alertImportSuccessJSON: "Backup OK.",
+        alertImportSuccess: (c) => `Importados ${c}.`, alertImportSuccessJSON: "¡Datos cargados correctamente!",
         alertImportErrorJSON: "Archivo mal.", alertCatNombreExiste: (n) => `"${n}" existe.`,
         alertCatNoSePuedeBorrar: (n) => `"${n}" tiene gastos.`, modalConfirmDeleteCat: (n) => `¿Borrar "${n}"?`,
         toastGastoEliminado: "Eliminado.", toastCategoriaGuardada: "Guardada.", toastCategoriaEliminada: "Eliminada.",
@@ -458,7 +470,7 @@ const TRADUCTIONS = {
     en: {
         alertMissing: "Missing fields.", alertGuardado: "Saved!", confirmDelete: "Delete?",
         confirmDeleteAll: "DELETE ALL?", alertNoExport: "No data.", alertCSVEmpty: "Empty.",
-        alertImportSuccess: (c) => `Imported ${c}.`, alertImportSuccessJSON: "Backup OK.",
+        alertImportSuccess: (c) => `Imported ${c}.`, alertImportSuccessJSON: "Data loaded successfully!",
         alertImportErrorJSON: "File error.", alertCatNombreExiste: (n) => `"${n}" exists.`,
         alertCatNoSePuedeBorrar: (n) => `"${n}" used.`, modalConfirmDeleteCat: (n) => `Delete "${n}"?`,
         toastGastoEliminado: "Deleted.", toastCategoriaGuardada: "Saved.", toastCategoriaEliminada: "Deleted.",
@@ -519,7 +531,7 @@ function cargarDatos() {
     actualizarSelectCategorias();
     renderizarTablaCategorias();
     actualizarSugerenciasDescripciones(descripcionesUsadas);
-    inicializarSelectoresMesAnio(); // Punto 3: Setea mes/año actual
+    inicializarSelectoresMesAnio(); 
     aplicarIdioma();
     
     renderizarGastosDelMes();
@@ -539,7 +551,6 @@ function aplicarIdioma() {
         if(t[key]) el.placeholder = t[key];
     });
     
-    // Guardamos selección actual antes de recrear
     const sm = document.getElementById('filtroMes');
     const valAnterior = sm.value; 
     sm.innerHTML = '';
@@ -861,7 +872,6 @@ function mostrarModalConfirmacion(t, cb) { document.getElementById('modalConfirm
 function ejecutarConfirmacion() { if(confirmCallback) confirmCallback(); cerrarModalConfirmacion(); }
 function cerrarModalConfirmacion() { document.getElementById('modalConfirmacion').style.display='none'; }
 
-// Punto 3: Inicialización con fecha actual forzada
 function inicializarSelectoresMesAnio() {
     const sm = document.getElementById('filtroMes'); const sa = document.getElementById('filtroAnioMensual'); const sh = document.getElementById('filtroAnioHistorico');
     sm.innerHTML=''; sa.innerHTML=''; sh.innerHTML='';
@@ -870,7 +880,6 @@ function inicializarSelectoresMesAnio() {
     ys.forEach(y => { sa.add(new Option(y,y)); sh.add(new Option(y,y)); });
     MONTH_NAMES_FULL[config.idioma].forEach((m,i) => sm.add(new Option(m,i+1)));
 
-    // Forzamos el mes y año actual al cargar
     const hoy = new Date();
     sm.value = hoy.getMonth() + 1;
     sa.value = hoy.getFullYear();
@@ -909,7 +918,7 @@ async function compartirBackupJSON() {
 function descargar(f){const a=document.createElement('a'); a.href=URL.createObjectURL(f); a.download=f.name; a.click();}
 function exportarReporteCSV(t) { compartirBackupJSON(); } 
 
-// Punto 2: Importar con feedback visual sin alert
+// PUNTO 3: Feedback de Importación con Toast + Botón Azul (distinto al verde)
 function importarDatos(e) {
     const f = e.target.files[0]; if(!f) return;
     const r = new FileReader();
@@ -920,12 +929,15 @@ function importarDatos(e) {
                 localStorage.setItem('gastos_v2', JSON.stringify(d.gastos_v2)); 
                 localStorage.setItem('config_v2', JSON.stringify(d.config_v2)); 
                 
-                // Feedback visual en botón
+                // Feedback 1: Toast
+                mostrarToast(TRADUCTIONS[config.idioma].alertImportSuccessJSON, 'success');
+
+                // Feedback 2: Botón cambia texto pero no color confuso (o usa azul oscuro)
                 const btn = document.getElementById('btnImportarTrigger');
-                const originalText = btn.innerHTML;
+                const originalHTML = btn.innerHTML;
                 const originalClass = btn.className;
                 
-                btn.className = 'btn btn-success';
+                // Usamos success pero con texto claro, el Toast ayuda a diferenciar
                 btn.innerHTML = `<i class="fas fa-check"></i> ${TRADUCTIONS[config.idioma].btnCargado}`;
                 
                 setTimeout(() => {
@@ -940,7 +952,7 @@ function importarDatos(e) {
 }
 function confirmarLimpiarTodosLosDatos(){ mostrarModalConfirmacion(TRADUCTIONS[config.idioma].confirmDeleteAll, ()=>{localStorage.clear(); location.reload();}); }
 
-// Punto 1: Gráficos - Letra pequeña y Ocultar si no cabe (<4%)
+// PUNTO 2 y 4: Charts
 function actualizarGraficoCategorias(l, c, i) {
     const ctx=document.getElementById(c).getContext('2d');
     const d={}; let totalChart = 0;
@@ -966,11 +978,22 @@ function actualizarGraficoCategorias(l, c, i) {
             maintainAspectRatio:false, 
             plugins:{
                 legend:{display:false},
+                // PUNTO 4: Tooltip Formato
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let val = context.raw;
+                            let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            let pct = (val * 100 / total).toFixed(2) + '%';
+                            return `${context.label}: ${formatearMoneda(val)} : ${pct}`;
+                        }
+                    }
+                },
                 datalabels: {
                     color: 'white',
-                    font: { weight: 'bold', size: 10 }, // Letra más pequeña
+                    // PUNTO 2: Letra más grande
+                    font: { weight: 'bold', size: 12 }, 
                     display: function(context) {
-                        // Ocultar si es menor al 4% del total
                         if (totalChart === 0) return false;
                         let value = context.dataset.data[context.dataIndex];
                         return (value / totalChart) > 0.04;

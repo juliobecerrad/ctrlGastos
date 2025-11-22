@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title id="appTitle">Control de Gastos</title> 
-    <meta name="theme-color" content="#007bff">
+    <meta name="theme-color" content="#1E3A8A">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
     
@@ -13,46 +13,58 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     
     <style>
-        /* --- VARIABLES --- */
+        /* --- VARIABLES: VIBRANT PROFESSIONAL (Aplicadas a estructura Clásica) --- */
         :root {
-            --primary-color: #007bff;
-            --primary-dark: #0056b3;
-            --secondary-color: #6c757d; 
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --bg-body: #f8f9fa; 
-            --bg-card: #ffffff;
-            --text-main: #343a40;
-            --border-color: #ced4da;
+            /* Colores Principales */
+            --primary-gradient: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+            --primary-color: #2563EB;       /* Azul Vibrante */
+            --primary-dark: #1E3A8A;        /* Azul Profundo */
             
-            --table-total-bg: #cfe2ff; 
-            --table-total-border: #084298; 
-            --table-zebra-bg: #f8f9fa; 
+            /* Estados */
+            --success-color: #10B981;       /* Verde Esmeralda */
+            --danger-color: #EF4444;        /* Rojo Vivo */
+            --secondary-color: #64748B;     /* Gris Slate */
             
-            --color-cash: #28a745;
-            --color-card: #007bff;
-            --color-transfer: #fd7e14;
+            /* Fondos y Textos */
+            --bg-body: #F1F5F9;             /* Fondo Slate muy suave */
+            --bg-card: #FFFFFF;             /* Blanco */
+            --text-main: #1E293B;           /* Texto oscuro casi negro */
+            --text-light: #FFFFFF;          /* Texto blanco */
+            --border-color: #E2E8F0;        /* Bordes suaves */
+            
+            /* Tablas */
+            --table-header-bg: #F8FAFC;
+            --table-header-text: #475569;
+            --table-zebra-bg: #F8FAFC;
+            
+            /* Colores Pago (Iconos) */
+            --color-cash: #10B981;
+            --color-card: #2563EB;
+            --color-transfer: #F59E0B;
 
-            --nav-bg: rgba(255, 255, 255, 0.98);
-            --nav-active: #007bff;
+            /* Navegación */
+            --nav-bg: #FFFFFF;
+            --nav-active: #2563EB;
             --safe-area-bottom: env(safe-area-inset-bottom, 0px);
-            --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg-body: #121212;
-                --bg-card: #1e1e1e;
-                --text-main: #e0e0e0;
-                --nav-bg: rgba(30, 30, 30, 0.98);
-                --table-zebra-bg: #252525;
-                --table-total-bg: #052c65; 
-                --table-total-border: #6ea8fe;
+                --bg-body: #0F172A;
+                --bg-card: #1E293B;
+                --text-main: #F8FAFC;
+                --border-color: #334155;
+                --nav-bg: #1E293B;
+                --nav-active: #60A5FA;
+                --table-header-bg: #1E293B;
+                --table-header-text: #CBD5E1;
+                --table-zebra-bg: #0F172A;
             }
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
             margin: 0; padding: 0;
             background-color: var(--bg-body); color: var(--text-main);
             max-width: 450px; margin: 0 auto; min-height: 100vh;
@@ -60,108 +72,117 @@
             overscroll-behavior-y: none;
         }
 
-        /* PUNTO 1: Transiciones Suaves */
+        /* Transiciones Suaves (Mantenidas) */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         h2, h3 { color: var(--text-main); text-align: center; }
-        h2 { font-size: 1.3em; margin-top: 20px; color: var(--primary-dark); }
+        h2 { font-size: 1.3em; margin-top: 20px; color: var(--primary-color); font-weight: 700; }
         
+        /* HEADER: Estructura original, color nuevo */
         .header {
             display: flex; align-items: center; padding: 10px 15px;
-            background-color: var(--bg-card); box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            background: var(--primary-gradient); /* CAMBIO: Degradado */
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             position: sticky; top: 0; z-index: 50;
         }
-        #appLogo { font-size: 1em; font-weight: bold; color: var(--primary-color); }
+        #appLogo { font-size: 1em; font-weight: bold; color: white; display: flex; align-items: center; gap: 8px; }
         
-        .pantalla { 
-            display: none; 
-            padding: 15px; 
-        }
-        /* Aplicamos la animación solo cuando está activa */
-        .pantalla.activa { 
-            display: block; 
-            animation: fadeIn 0.3s ease-out forwards;
-        }
+        .pantalla { display: none; padding: 15px; }
+        .pantalla.activa { display: block; animation: fadeIn 0.3s ease-out forwards; }
 
         .form-group { margin-bottom: 10px; }
-        label { display: block; margin-bottom: 3px; font-weight: bold; font-size: 0.9em; }
+        label { display: block; margin-bottom: 3px; font-weight: 600; font-size: 0.9em; color: var(--secondary-color); }
+        
+        /* INPUTS: Estructura original, estilo limpio */
         input[type="date"], input[type="text"], input[type="number"], select {
-            width: 100%; padding: 8px; border: 1px solid var(--border-color);
-            border-radius: 5px; box-sizing: border-box; font-size: 1em;
+            width: 100%; padding: 10px; 
+            border: 1px solid var(--border-color);
+            border-radius: 8px; /* Redondeado sutil */
+            box-sizing: border-box; font-size: 1em;
             background-color: var(--bg-card); color: var(--text-main);
+            transition: border-color 0.2s;
         }
+        input:focus, select:focus { outline: none; border-color: var(--primary-color); }
 
+        /* BOTONES: Estructura original, degradados vibrantes */
         button.btn {
-            width: 100%; padding: 10px; border: none; border-radius: 5px;
-            font-size: 1em; cursor: pointer; margin-top: 8px; transition: background-color 0.3s;
+            width: 100%; padding: 12px; border: none; border-radius: 8px;
+            font-size: 1em; cursor: pointer; margin-top: 8px; 
+            font-weight: 600; transition: opacity 0.2s;
         }
-        .btn-primary { background-color: var(--primary-color); color: white; }
-        .btn-danger { background-color: var(--danger-color); color: white; margin-top: 20px; }
+        button.btn:active { opacity: 0.8; }
+
+        .btn-primary { background: var(--primary-gradient); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); color: white; margin-top: 20px; }
         .btn-success { background-color: var(--success-color); color: white; }
-        .btn-secondary { background-color: var(--secondary-color); color: white; }
-        button.btn-accion-tabla { width: auto; padding: 5px 10px; font-size: 0.8em; margin: 0 2px; }
+        .btn-secondary { background-color: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); }
+        
+        button.btn-accion-tabla { width: auto; padding: 5px 10px; font-size: 0.8em; margin: 0 2px; border-radius: 4px; }
 
+        /* TABLAS: Estructura original, colores limpios */
         .tabla-gastos {
-            width: 100%;
-            border-collapse: collapse; 
-            margin-top: 15px; 
+            width: 100%; border-collapse: collapse; margin-top: 15px; 
             background-color: var(--bg-card);
-            box-shadow: var(--shadow-sm);
-            border-radius: 5px;
-            overflow: hidden;
+            box-shadow: var(--shadow-sm); border-radius: 8px; overflow: hidden;
         }
-        .tabla-gastos th, .tabla-gastos td { padding: 10px; text-align: left; font-size: 0.9em; }
+        .tabla-gastos th, .tabla-gastos td { padding: 12px 10px; text-align: left; font-size: 0.9em; }
         .tabla-gastos th {
-            background-color: var(--table-total-bg); font-weight: 600;
-            border-bottom: 2px solid var(--table-total-border); color: var(--table-total-border); 
+            background-color: var(--table-header-bg); font-weight: 600;
+            border-bottom: 2px solid var(--border-color); color: var(--table-header-text); 
         }
-        .tabla-gastos td { border-bottom: 1px solid #dee2e6; }
+        .tabla-gastos td { border-bottom: 1px solid var(--border-color); }
         .tabla-gastos tbody tr:nth-child(even) { background-color: var(--table-zebra-bg); }
-        .tabla-gastos tr:hover:not(tfoot tr) { background-color: rgba(0, 123, 255, 0.1); cursor: pointer; }
-        .tabla-gastos .gasto-valor { text-align: right; white-space: nowrap; }
+        .tabla-gastos tr:hover:not(tfoot tr) { background-color: rgba(37, 99, 235, 0.05); cursor: pointer; }
+        
+        .tabla-gastos .gasto-valor { text-align: right; white-space: nowrap; font-weight: 600; }
         .tabla-gastos .gasto-categoria-subtexto { font-size: 0.78em; color: var(--secondary-color); margin-top: 2px; }
-        .tabla-gastos tfoot tr { font-weight: bold; background-color: var(--table-total-bg); border-top: 2px solid var(--table-total-border); }
-        .tabla-gastos tfoot td { color: var(--table-total-border); border-bottom: none; }
-        .tabla-gastos tfoot .gasto-valor { color: var(--table-total-border); }
+        .tabla-gastos tfoot tr { font-weight: bold; background-color: var(--table-header-bg); border-top: 2px solid var(--border-color); }
+        .tabla-gastos tfoot td { color: var(--primary-dark); border-bottom: none; }
+        .tabla-gastos tfoot .gasto-valor { color: var(--primary-dark); }
 
+        /* RADIO BUTTONS: Estructura original, colores vibrantes */
         .payment-type-group { display: flex; justify-content: space-around; margin-bottom: 5px; gap: 5px; }
         .payment-type-group input { display: none; }
         .payment-type-group label {
             flex-grow: 1; text-align: center; padding: 10px 5px;
-            border: 1px solid #ced4da; border-radius: 5px;
+            border: 1px solid var(--border-color); border-radius: 8px;
             cursor: pointer; font-size: 0.9em; background-color: var(--bg-card);
             display: flex; align-items: center; justify-content: center; gap: 5px;
+            transition: all 0.2s;
         }
         .payment-type-group label i { font-size: 1.1em; }
         .payment-type-group input:checked + label {
-            background-color: #e9ecef; border-color: var(--primary-color); font-weight: bold;
-            box-shadow: 0 0 5px rgba(0,123,255,0.3); color: var(--text-main);
+            background-color: #EFF6FF; /* Azul muy claro */
+            border-color: var(--primary-color); font-weight: bold;
+            color: var(--primary-color);
         }
         label[for*="Contado"] i { color: var(--color-cash); }
         label[for*="Tarjeta"] i { color: var(--color-card); }
         label[for*="Transf"] i { color: var(--color-transfer); }
 
+        /* FILTROS GRID (Estructura v6.4) */
         .payment-filters-grid { display: flex; flex-wrap: wrap; }
         .payment-filters-grid label[for*="Total"] { flex-basis: 100%; margin-bottom: 5px; }
         .payment-filters-grid label:not([for*="Total"]) { flex-grow: 1; flex-basis: 0; }
         .pago-sum { display: block; font-weight: bold; font-size: 1em; margin-left: 5px; }
 
+        /* NAV TABS: Estructura original (fija abajo), colores nuevos */
         .nav-tabs {
             position: fixed; bottom: 0; left: 0; right: 0;
             display: flex; justify-content: space-around;
             background-color: var(--nav-bg); 
-            border-top: 1px solid #e0e0e0;
-            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            border-top: 1px solid var(--border-color);
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
             max-width: 450px; margin: 0 auto; z-index: 100;
-            height: 55px;
-            padding-bottom: var(--safe-area-bottom);
+            height: 55px; padding-bottom: var(--safe-area-bottom);
         }
         .nav-tabs button {
             flex-grow: 1; border: none; background: transparent;
-            color: var(--text-main); font-size: 0.7em; cursor: pointer;
+            color: var(--secondary-color); font-size: 0.7em; cursor: pointer;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         .nav-tabs button i { font-size: 1.4em; margin-bottom: 2px; }
@@ -169,33 +190,30 @@
 
         #detalleMensual, #detalleHistorico, .chart-container {
             background-color: var(--bg-card); padding: 15px; border-radius: 8px;
-            box-shadow: var(--shadow-sm); margin-top: 20px;
+            box-shadow: var(--shadow-sm); margin-top: 20px; border: 1px solid var(--border-color);
         }
-        .chart-container {
-            height: 350px;
-            position: relative;
-        }
+        .chart-container { height: 350px; position: relative; }
 
         .filtro-container-inline { display: flex; gap: 10px; margin-bottom: 8px; }
         
         .pagination-controls {
             display: flex; justify-content: space-between; align-items: center;
-            margin-top: 15px; padding-top: 10px; border-top: 1px solid #eee;
+            margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border-color);
         }
         .pagination-controls button { width: auto; margin: 0; padding: 5px 15px; font-size: 0.9em; }
-        .pagination-controls span { font-size: 0.85em; font-weight: bold; }
 
-        .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); padding-top: 60px; }
+        /* MODALES (Estructura Original) */
+        .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); padding-top: 60px; }
         .modal-content {
             background-color: var(--bg-card); margin: 5% auto; padding: 20px;
-            border: 1px solid #888; width: 90%; max-width: 400px; border-radius: 10px;
+            border: 1px solid var(--secondary-color); width: 90%; max-width: 400px; border-radius: 10px;
         }
         .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
         .modal-botones-row { display: flex; gap: 10px; margin-top: 15px; }
 
         #toast {
             display: none; position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-            padding: 12px 20px; border-radius: 25px; background-color: #333; color: white; z-index: 300;
+            padding: 12px 20px; border-radius: 25px; background-color: #1E293B; color: white; z-index: 300;
         }
         #toast.show { display: block; }
         #toast.success { background-color: var(--success-color); }
@@ -230,11 +248,11 @@
             <label data-i18n="lblTipoPago">Tipo de Pago:</label>
             <div class="payment-type-group">
                 <input type="radio" id="pagoContado" name="tipoPago" value="Contado" checked>
-                <label for="pagoContado"><i class="fas fa-money-bill-wave"></i> <span data-i18n="lblContado">Contado</span></label>
+                <label for="pagoContado"><i class="fas fa-coins"></i> <span data-i18n="lblContado">Contado</span></label>
                 <input type="radio" id="pagoTarjeta" name="tipoPago" value="Tarjeta">
-                <label for="pagoTarjeta"><i class="fas fa-credit-card"></i> <span data-i18n="lblTarjeta">Tarjeta</span></label>
+                <label for="pagoTarjeta"><i class="far fa-credit-card"></i> <span data-i18n="lblTarjeta">Tarjeta</span></label>
                 <input type="radio" id="pagoTransferencia" name="tipoPago" value="Transferencia">
-                <label for="pagoTransferencia"><i class="fas fa-exchange-alt"></i> <span data-i18n="lblTransf">Transf.</span></label>
+                <label for="pagoTransferencia"><i class="fas fa-mobile-alt"></i> <span data-i18n="lblTransf">Transf.</span></label>
             </div>
             <button class="btn btn-primary" id="btnAddGasto" onclick="agregarGasto()" data-i18n="btnAddGasto">➕ Añadir Gasto</button>
         </div>
@@ -260,13 +278,13 @@
             <label for="filtroPagoTotalMensual"><span data-i18n="lblTotal">Total</span><span class="pago-sum" id="sum-total-mensual">$0</span></label>
             
             <input type="radio" id="filtroPagoContadoMensual" name="filtroTipoPagoMensual" value="Contado">
-            <label for="filtroPagoContadoMensual"><i class="fas fa-money-bill-wave"></i><span class="pago-sum" id="sum-contado-mensual">$0</span></label>
+            <label for="filtroPagoContadoMensual"><i class="fas fa-coins"></i><span class="pago-sum" id="sum-contado-mensual">$0</span></label>
             
             <input type="radio" id="filtroPagoTarjetaMensual" name="filtroTipoPagoMensual" value="Tarjeta">
-            <label for="filtroPagoTarjetaMensual"><i class="fas fa-credit-card"></i><span class="pago-sum" id="sum-tarjeta-mensual">$0</span></label>
+            <label for="filtroPagoTarjetaMensual"><i class="far fa-credit-card"></i><span class="pago-sum" id="sum-tarjeta-mensual">$0</span></label>
             
             <input type="radio" id="filtroPagoTransfMensual" name="filtroTipoPagoMensual" value="Transferencia">
-            <label for="filtroPagoTransfMensual"><i class="fas fa-exchange-alt"></i><span class="pago-sum" id="sum-transf-mensual">$0</span></label>
+            <label for="filtroPagoTransfMensual"><i class="fas fa-mobile-alt"></i><span class="pago-sum" id="sum-transf-mensual">$0</span></label>
         </div>
 
         <h3 data-i18n="titleTotalCategoria">Total por Categoría</h3>
@@ -277,7 +295,7 @@
         </table>
         
         <div id="detalleMensual">
-            <h3><span data-i18n="titleDetalle">Detalle</span>: <span id="detalleCategoriaMensual"></span></h3>
+            <h3><span data-i18n="titleDetalle">Detalle</span>: <span id="detalleCategoriaMensual" style="color: var(--primary-color);"></span></h3>
             <input type="text" id="buscarDetalleMensual" class="input-buscar" data-i18n-ph="phBuscar" placeholder="Buscar..." onkeyup="filtrarTablaDetalle('buscarDetalleMensual', 'tablaDetalleMensual')">
             <table id="tablaDetalleMensual" class="tabla-gastos">
                 <thead><tr><th data-i18n="colFecha">Fecha</th><th data-i18n="colDesc">Descripción</th><th data-i18n="colValor">Valor</th></tr></thead>
@@ -306,13 +324,13 @@
             <label for="filtroPagoTotalHistorico"><span data-i18n="lblTotal">Total</span><span class="pago-sum" id="sum-total-historico">$0</span></label>
             
             <input type="radio" id="filtroPagoContadoHistorico" name="filtroTipoPagoHistorico" value="Contado">
-            <label for="filtroPagoContadoHistorico"><i class="fas fa-money-bill-wave"></i><span class="pago-sum" id="sum-contado-historico">$0</span></label>
+            <label for="filtroPagoContadoHistorico"><i class="fas fa-coins"></i><span class="pago-sum" id="sum-contado-historico">$0</span></label>
             
             <input type="radio" id="filtroPagoTarjetaHistorico" name="filtroTipoPagoHistorico" value="Tarjeta">
-            <label for="filtroPagoTarjetaHistorico"><i class="fas fa-credit-card"></i><span class="pago-sum" id="sum-tarjeta-historico">$0</span></label>
+            <label for="filtroPagoTarjetaHistorico"><i class="far fa-credit-card"></i><span class="pago-sum" id="sum-tarjeta-historico">$0</span></label>
             
             <input type="radio" id="filtroPagoTransfHistorico" name="filtroTipoPagoHistorico" value="Transferencia">
-            <label for="filtroPagoTransfHistorico"><i class="fas fa-exchange-alt"></i><span class="pago-sum" id="sum-transf-historico">$0</span></label>
+            <label for="filtroPagoTransfHistorico"><i class="fas fa-mobile-alt"></i><span class="pago-sum" id="sum-transf-historico">$0</span></label>
         </div>
 
         <h3 data-i18n="titleTotalCatAnio">Total Categorías (Año)</h3>
@@ -323,7 +341,7 @@
         </table>
         
         <div id="detalleHistorico">
-            <h3><span data-i18n="titleDetalle">Detalle</span>: <span id="detalleCategoriaHistorico"></span></h3>
+            <h3><span data-i18n="titleDetalle">Detalle</span>: <span id="detalleCategoriaHistorico" style="color: var(--primary-color);"></span></h3>
             <input type="text" id="buscarDetalleHistorico" class="input-buscar" data-i18n-ph="phBuscar" placeholder="Buscar..." onkeyup="filtrarTablaDetalle('buscarDetalleHistorico', 'tablaDetalleHistorico')">
             <table id="tablaDetalleHistorico" class="tabla-gastos">
                 <thead><tr><th data-i18n="colFecha">Fecha</th><th data-i18n="colDesc">Descripción</th><th data-i18n="colValor">Valor</th></tr></thead>
@@ -361,7 +379,7 @@
 
         <h3 data-i18n="titleCategorias">Categorías</h3>
         <table id="tablaCategorias" class="tabla-gastos">
-            <thead><tr><th data-i18n="colNombre">Nombre</th><th data-i18n="colAccion">Acción</th></tr></thead>
+            <thead><tr><th data-i18n="colNombre">Nombre</th><th data-i18n="colAccion" style="text-align:center">Acción</th></tr></thead>
             <tbody></tbody>
         </table>
         <div style="display: flex; gap: 10px; margin-top: 15px;">
@@ -386,13 +404,13 @@
             <div class="form-group"><input type="text" id="modalValor" inputmode="decimal"></div>
             <div class="payment-type-group">
                 <input type="radio" id="modalPagoContado" name="modalTipoPago" value="Contado">
-                <label for="modalPagoContado"><i class="fas fa-money-bill-wave"></i> <span data-i18n="lblContado">Contado</span></label>
+                <label for="modalPagoContado"><i class="fas fa-coins"></i> <span data-i18n="lblContado">Contado</span></label>
                 
                 <input type="radio" id="modalPagoTarjeta" name="modalTipoPago" value="Tarjeta">
-                <label for="modalPagoTarjeta"><i class="fas fa-credit-card"></i> <span data-i18n="lblTarjeta">Tarjeta</span></label>
+                <label for="modalPagoTarjeta"><i class="far fa-credit-card"></i> <span data-i18n="lblTarjeta">Tarjeta</span></label>
                 
                 <input type="radio" id="modalPagoTransferencia" name="modalTipoPago" value="Transferencia">
-                <label for="modalPagoTransferencia"><i class="fas fa-exchange-alt"></i> <span data-i18n="lblTransf">Transf.</span></label>
+                <label for="modalPagoTransferencia"><i class="fas fa-mobile-alt"></i> <span data-i18n="lblTransf">Transf.</span></label>
             </div>
             <div class="modal-botones-row">
                 <button class="btn btn-success" onclick="guardarEdicionDesdeModal()" data-i18n="btnGuardar">Guardar</button>
@@ -517,6 +535,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 });
 
+// --- SEGURIDAD: Función para sanitizar inputs ---
+function sanitizar(str) {
+    if (!str) return '';
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return str.replace(/[&<>"']/g, (m) => map[m]);
+}
+
 function cargarDatos() {
     cargarConfig();
     gastos = JSON.parse(localStorage.getItem('gastos_v2')) || [];
@@ -578,6 +603,7 @@ function inicializarUI() {
 }
 
 function mostrarPantalla(id, btn) {
+    window.scrollTo(0, 0);
     document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
     document.getElementById(id).classList.add('activa');
     document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
@@ -642,7 +668,7 @@ function renderizarTablaDetallePaginada(tablaId, totalId, labelInfoId) {
 function agregarGasto() {
     const fecha = document.getElementById('gastoFecha').value;
     const cat = document.getElementById('gastoCategoria').value;
-    const desc = document.getElementById('gastoDescripcion').value.trim();
+    const desc = sanitizar(document.getElementById('gastoDescripcion').value.trim());
     const val = parsearValor(document.getElementById('gastoValor').value);
     const pago = document.querySelector('input[name="tipoPago"]:checked').value;
 
@@ -659,7 +685,6 @@ function agregarGasto() {
     document.getElementById('gastoFecha').value = fecha;
 
     const btn = document.getElementById('btnAddGasto');
-    const originalText = btn.textContent; 
     const originalHTML = btn.innerHTML;
     const originalClass = btn.className;
     
@@ -701,7 +726,13 @@ function actualizarResumenMensual() {
         paginaActual = 1;
         renderizarTablaDetallePaginada('tablaDetalleMensual', 'totalDetalleMensual', 'pageInfoMensual');
         document.getElementById('detalleCategoriaMensual').textContent = cat;
-        document.getElementById('detalleMensual').style.display = 'block';
+        
+        const detalleDiv = document.getElementById('detalleMensual');
+        detalleDiv.style.display = 'block';
+        
+        setTimeout(() => {
+            detalleDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
     });
     actualizarGraficoCategorias(lista, 'chartMensualCanvas', 'chartMensualInstance');
 }
@@ -741,8 +772,12 @@ function actualizarResumenHistorico(resetCategoria = false) {
         renderizarTablaDetallePaginada('tablaDetalleHistorico', 'totalDetalleHistorico', 'pageInfoHistorico');
         
         document.getElementById('detalleCategoriaHistorico').textContent = cat;
-        document.getElementById('detalleHistorico').style.display = 'block';
-        document.getElementById('detalleHistorico').scrollIntoView({behavior:'smooth'});
+        const detalleDiv = document.getElementById('detalleHistorico');
+        detalleDiv.style.display = 'block';
+        
+        setTimeout(() => {
+            detalleDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
     });
     
     let graficos = [...listaFiltrada];
@@ -761,7 +796,7 @@ function renderizarTablaResumen(lista, tablaId, totalId, onRowClick) {
         const tr = document.createElement('tr');
         const pct = total>0 ? Math.round((val/total)*100) : 0;
         if (tablaId === 'tablaResumenHistorico' && cat === filtroCategoriaHistorico) {
-            tr.style.backgroundColor = 'rgba(0, 123, 255, 0.1)'; tr.style.fontWeight = 'bold';
+            tr.style.backgroundColor = '#EFF6FF'; tr.style.fontWeight = 'bold';
         }
         tr.innerHTML = `<td>${cat}</td><td class="gasto-valor">${formatearMoneda(val)}</td><td>${pct}%</td>`;
         tr.onclick = () => onRowClick(cat);
@@ -818,7 +853,7 @@ function guardarEdicionDesdeModal() {
     if(g) {
         g.fecha = document.getElementById('modalFecha').value;
         g.categoria = document.getElementById('modalCategoria').value;
-        g.descripcion = document.getElementById('modalDescripcion').value;
+        g.descripcion = sanitizar(document.getElementById('modalDescripcion').value);
         g.valor = parsearValor(document.getElementById('modalValor').value);
         g.tipoPago = document.querySelector('input[name="modalTipoPago"]:checked').value;
         gastos.sort(sortData);
@@ -832,7 +867,7 @@ function confirmarEliminarGasto() {
 }
 
 function agregarCategoria() {
-    const n = document.getElementById('nuevaCategoria').value.trim();
+    const n = sanitizar(document.getElementById('nuevaCategoria').value.trim());
     if(!n) return;
     if(config.categorias.includes(n)) return mostrarToast(TRADUCTIONS[config.idioma].alertCatNombreExiste(n), 'error');
     config.categorias.push(n);
@@ -854,7 +889,7 @@ function renderizarTablaCategorias() {
 function abrirModalCategoria(i) { categoriaEditandoNombreAntiguo = config.categorias[i]; document.getElementById('modalCategoriaNombre').value=categoriaEditandoNombreAntiguo; document.getElementById('modalEdicionCategoria').style.display='block'; }
 function cerrarModalCategoria() { document.getElementById('modalEdicionCategoria').style.display='none'; }
 function guardarEdicionCategoria() {
-    const n = document.getElementById('modalCategoriaNombre').value.trim();
+    const n = sanitizar(document.getElementById('modalCategoriaNombre').value.trim());
     if(n && n!==categoriaEditandoNombreAntiguo) {
         if(config.categorias.includes(n)) return mostrarToast(TRADUCTIONS[config.idioma].alertCatNombreExiste(n), 'error');
         config.categorias[config.categorias.indexOf(categoriaEditandoNombreAntiguo)] = n;
@@ -905,7 +940,17 @@ function filtrarTablaDetalle(i, t) {
 
 async function compartirBackupJSON() {
     const txt = JSON.stringify({gastos_v2:gastos, config_v2:config}, null, 2);
-    const f = new File([new Blob([txt],{type:'text/plain'})], `Backup_${new Date().toISOString().split('T')[0]}.txt`, {type:'text/plain'});
+    
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const h = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const sec = String(now.getSeconds()).padStart(2, '0');
+    const fileName = `Backup_${y}-${m}-${d}_${h}-${min}-${sec}.txt`;
+
+    const f = new File([new Blob([txt],{type:'text/plain'})], fileName, {type:'text/plain'});
     descargar(f);
     if(navigator.canShare && navigator.canShare({files:[f]})) {
         try {
@@ -918,7 +963,6 @@ async function compartirBackupJSON() {
 function descargar(f){const a=document.createElement('a'); a.href=URL.createObjectURL(f); a.download=f.name; a.click();}
 function exportarReporteCSV(t) { compartirBackupJSON(); } 
 
-// PUNTO 3: Feedback de Importación con Toast + Botón Azul (distinto al verde)
 function importarDatos(e) {
     const f = e.target.files[0]; if(!f) return;
     const r = new FileReader();
@@ -928,21 +972,10 @@ function importarDatos(e) {
             if(d.gastos_v2) { 
                 localStorage.setItem('gastos_v2', JSON.stringify(d.gastos_v2)); 
                 localStorage.setItem('config_v2', JSON.stringify(d.config_v2)); 
-                
-                // Feedback 1: Toast
                 mostrarToast(TRADUCTIONS[config.idioma].alertImportSuccessJSON, 'success');
-
-                // Feedback 2: Botón cambia texto pero no color confuso (o usa azul oscuro)
                 const btn = document.getElementById('btnImportarTrigger');
-                const originalHTML = btn.innerHTML;
-                const originalClass = btn.className;
-                
-                // Usamos success pero con texto claro, el Toast ayuda a diferenciar
                 btn.innerHTML = `<i class="fas fa-check"></i> ${TRADUCTIONS[config.idioma].btnCargado}`;
-                
-                setTimeout(() => {
-                   location.reload();
-                }, 1500);
+                setTimeout(() => { location.reload(); }, 1500);
             }
         } catch { 
             mostrarToast(TRADUCTIONS[config.idioma].alertImportErrorJSON, 'error');
@@ -952,7 +985,6 @@ function importarDatos(e) {
 }
 function confirmarLimpiarTodosLosDatos(){ mostrarModalConfirmacion(TRADUCTIONS[config.idioma].confirmDeleteAll, ()=>{localStorage.clear(); location.reload();}); }
 
-// PUNTO 2 y 4: Charts
 function actualizarGraficoCategorias(l, c, i) {
     const ctx=document.getElementById(c).getContext('2d');
     const d={}; let totalChart = 0;
@@ -963,13 +995,16 @@ function actualizarGraficoCategorias(l, c, i) {
     
     if(window[i]) window[i].destroy();
     
+    // Paleta "Vibrant Professional"
+    const paleta = ['#2563EB', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#64748B'];
+
     window[i] = new Chart(ctx, { 
         type:'doughnut', 
         data:{
             labels:Object.keys(d), 
             datasets:[{
                 data:Object.values(d), 
-                backgroundColor:['#007bff','#28a745','#dc3545','#ffc107','#fd7e14','#6f42c1'], 
+                backgroundColor: paleta, 
                 borderWidth:1
             }]
         }, 
@@ -978,7 +1013,6 @@ function actualizarGraficoCategorias(l, c, i) {
             maintainAspectRatio:false, 
             plugins:{
                 legend:{display:false},
-                // PUNTO 4: Tooltip Formato
                 tooltip: {
                     callbacks: {
                         label: function(context) {
@@ -991,7 +1025,6 @@ function actualizarGraficoCategorias(l, c, i) {
                 },
                 datalabels: {
                     color: 'white',
-                    // PUNTO 2: Letra más grande
                     font: { weight: 'bold', size: 12 }, 
                     display: function(context) {
                         if (totalChart === 0) return false;
@@ -1025,7 +1058,7 @@ function actualizarGraficoGastosPorMes(l) {
         type:'bar',
         data:{
             labels:MONTH_NAMES_FULL[config.idioma].map(m=>m.substr(0,3)), 
-            datasets:[{data:md, backgroundColor:'#007bff'}]
+            datasets:[{data:md, backgroundColor:'#2563EB'}]
         },
         options:{
             responsive:true, 

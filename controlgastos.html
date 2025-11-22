@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title id="appTitle">Control de Gastos</title> 
+    <meta name="theme-color" content="#007bff">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    
+    <style>
+        /* --- VARIABLES --- */
+        :root {
+            --primary-color: #007bff;
+            --primary-dark: #0056b3;
+            --secondary-color: #6c757d; 
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --bg-body: #f8f9fa; 
+            --bg-card: #ffffff;
+            --text-main: #343a40;
+            --border-color: #ced4da;
+            
+            --table-total-bg: #cfe2ff; 
+            --table-total-border: #084298; 
+            --table-zebra-bg: #f8f9fa; 
+            
+            --color-cash: #28a745;
+            --color-card: #007bff;
+            --color-transfer: #fd7e14;
+
+            --nav-bg: rgba(255, 255, 255, 0.98);
+            --nav-active: #007bff;
+            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+            --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-body: #121212;
+                --bg-card: #1e1e1e;
+                --text-main: #e0e0e0;
+                --nav-bg: rgba(30, 30, 30, 0.98);
+                --table-zebra-bg: #252525;
+                --table-total-bg: #052c65; 
+                --table-total-border: #6ea8fe;
+            }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--bg-body); color: var(--text-main);
+            max-width: 450px; margin: 0 auto; min-height: 100vh;
+            padding-bottom: calc(65px + var(--safe-area-bottom)); 
+            overscroll-behavior-y: none;
+        }
+
+        h2, h3 { color: var(--text-main); text-align: center; }
+        h2 { font-size: 1.3em; margin-top: 20px; color: var(--primary-dark); }
+        
+        .header {
+            display: flex; align-items: center; padding: 10px 15px;
+            background-color: var(--bg-card); box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky; top: 0; z-index: 50;
+        }
+        #appLogo { font-size: 1em; font-weight: bold; color: var(--primary-color); }
+        
+        .pantalla { display: none; padding: 15px; }
+        .pantalla.activa { display: block; }
+
+        .form-group { margin-bottom: 10px; }
+        label { display: block; margin-bottom: 3px; font-weight: bold; font-size: 0.9em; }
+        input[type="date"], input[type="text"], input[type="number"], select {
+            width: 100%; padding: 8px; border: 1px solid var(--border-color);
+            border-radius: 5px; box-sizing: border-box; font-size: 1em;
+            background-color: var(--bg-card); color: var(--text-main);
+        }
+
+        button.btn {
+            width: 100%; padding: 10px; border: none; border-radius: 5px;
+            font-size: 1em; cursor: pointer; margin-top: 8px; transition: background-color 0.3s;
+        }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-danger { background-color: var(--danger-color); color: white; margin-top: 20px; }
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-secondary { background-color: var(--secondary-color); color: white; }
+        button.btn-accion-tabla { width: auto; padding: 5px 10px; font-size: 0.8em; margin: 0 2px; }
+
+        .tabla-gastos {
+            width: 100%;
+            border-collapse: collapse; 
+            margin-top: 15px; 
+            background-color: var(--bg-card);
+            box-shadow: var(--shadow-sm);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .tabla-gastos th, .tabla-gastos td { padding: 10px; text-align: left; font-size: 0.9em; }
+        .tabla-gastos th {
+            background-color: var(--table-total-bg); font-weight: 600;
+            border-bottom: 2px solid var(--table-total-border); color: var(--table-total-border); 
+        }
+        .tabla-gastos td { border-bottom: 1px solid #dee2e6; }
+        .tabla-gastos tbody tr:nth-child(even) { background-color: var(--table-zebra-bg); }
+        .tabla-gastos tr:hover:not(tfoot tr) { background-color: rgba(0, 123, 255, 0.1); cursor: pointer; }
+        .tabla-gastos .gasto-valor { text-align: right; white-space: nowrap; }
+        .tabla-gastos .gasto-categoria-subtexto { font-size: 0.78em; color: var(--secondary-color); margin-top: 2px; }
+        .tabla-gastos tfoot tr { font-weight: bold; background-color: var(--table-total-bg); border-top: 2px solid var(--table-total-border); }
+        .tabla-gastos tfoot td { color: var(--table-total-border); border-bottom: none; }
+        .tabla-gastos tfoot .gasto-valor { color: var(--table-total-border); }
+
+        .payment-type-group { display: flex; justify-content: space-around; margin-bottom: 5px; gap: 5px; }
+        .payment-type-group input { display: none; }
+        .payment-type-group label {
+            flex-grow: 1; text-align: center; padding: 10px 5px;
+            border: 1px solid #ced4da; border-radius: 5px;
+            cursor: pointer; font-size: 0.9em; background-color: var(--bg-card);
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .payment-type-group label i { font-size: 1.1em; }
+        .payment-type-group input:checked + label {
+            background-color: #e9ecef; border-color: var(--primary-color); font-weight: bold;
+            box-shadow: 0 0 5px rgba(0,123,255,0.3); color: var(--text-main);
+        }
+        label[for*="Contado"] i { color: var(--color-cash); }
+        label[for*="Tarjeta"] i { color: var(--color-card); }
+        label[for*="Transf"] i { color: var(--color-transfer); }
+
+        .payment-filters-grid { display: flex; flex-wrap: wrap; }
+        .payment-filters-grid label[for*="Total"] { flex-basis: 100%; margin-bottom: 5px; }
+        .payment-filters-grid label:not([for*="Total"]) { flex-grow: 1; flex-basis: 0; }
+        .pago-sum { display: block; font-weight: bold; font-size: 1em; margin-left: 5px; }
+
+        .nav-tabs {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            display: flex; justify-content: space-around;
+            background-color: var(--nav-bg); 
+            border-top: 1px solid #e0e0e0;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            max-width: 450px; margin: 0 auto; z-index: 100;
+            height: 55px;
+            padding-bottom: var(--safe-area-bottom);
+        }
+        .nav-tabs button {
+            flex-grow: 1; border: none; background: transparent;
+            color: var(--text-main); font-size: 0.7em; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .nav-tabs button i { font-size: 1.4em; margin-bottom: 2px; }
+        .nav-tabs button.active { color: var(--nav-active); font-weight: bold; }
+
+        #detalleMensual, #detalleHistorico, .chart-container {
+            background-color: var(--bg-card); padding: 15px; border-radius: 8px;
+            box-shadow: var(--shadow-sm); margin-top: 20px;
+        }
+        /* PUNTO 1: Charts más grandes */
+        .chart-container {
+            height: 350px;
+            position: relative;
+        }
+
+        .filtro-container-inline { display: flex; gap: 10px; margin-bottom: 8px; }
+        
+        .pagination-controls {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 15px; padding-top: 10px; border-top: 1px solid #eee;
+        }
+        .pagination-controls button { width: auto; margin: 0; padding: 5px 15px; font-size: 0.9em; }
+        .pagination-controls span { font-size: 0.85em; font-weight: bold; }
+
+        .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); padding-top: 60px; }
+        .modal-content {
+            background-color: var(--bg-card); margin: 5% auto; padding: 20px;
+            border: 1px solid #888; width: 90%; max-width: 400px; border-radius: 10px;
+        }
+        .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .modal-botones-row { display: flex; gap: 10px; margin-top: 15px; }
+
+        #toast {
+            display: none; position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            padding: 12px 20px; border-radius: 25px; background-color: #333; color: white; z-index: 300;
+        }
+        #toast.show { display: block; }
+        #toast.success { background-color: var(--success-color); }
+        #toast.error { background-color: var(--danger-color); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span id="appLogo"><i class="fas fa-wallet"></i> <span data-i18n="appTitle">Control de Gastos</span></span>
+    </div>
+
+    <div id="gasto" class="pantalla activa">
+        <div id="formulario-gasto">
+            <h2 data-i18n="titleIngresoGasto">Ingreso de Gasto</h2>
+            <div class="form-group">
+                <label data-i18n="lblFecha">Fecha:</label>
+                <input type="date" id="gastoFecha" required>
+            </div>
+            <div class="form-group">
+                <label data-i18n="lblCategoria">Categoría:</label>
+                <select id="gastoCategoria" required></select>
+            </div>
+            <div class="form-group">
+                <label data-i18n="lblDescripcion">Descripción:</label>
+                <input type="text" id="gastoDescripcion" list="sugerenciasDescripciones" data-i18n-ph="phEjCafe" placeholder="Ej: Café" required>
+                <datalist id="sugerenciasDescripciones"></datalist>
+            </div>
+            <div class="form-group">
+                <label data-i18n="lblValor">Valor:</label>
+                <input type="text" id="gastoValor" placeholder="0.00" inputmode="decimal" required>
+            </div>
+            <label data-i18n="lblTipoPago">Tipo de Pago:</label>
+            <div class="payment-type-group">
+                <input type="radio" id="pagoContado" name="tipoPago" value="Contado" checked>
+                <label for="pagoContado"><i class="fas fa-money-bill-wave"></i> <span data-i18n="lblContado">Contado</span></label>
+                <input type="radio" id="pagoTarjeta" name="tipoPago" value="Tarjeta">
+                <label for="pagoTarjeta"><i class="fas fa-credit-card"></i> <span data-i18n="lblTarjeta">Tarjeta</span></label>
+                <input type="radio" id="pagoTransferencia" name="tipoPago" value="Transferencia">
+                <label for="pagoTransferencia"><i class="fas fa-exchange-alt"></i> <span data-i18n="lblTransf">Transf.</span></label>
+            </div>
+            <button class="btn btn-primary" id="btnAddGasto" onclick="agregarGasto()" data-i18n="btnAddGasto">➕ Añadir Gasto</button>
+        </div>
+        
+        <h2 data-i18n="titleGastosMes">Gastos del Mes</h2>
+        <div style="font-size:0.8em; text-align:center; color:gray; margin-bottom:5px;" data-i18n="lblClicEditar">Clic para editar</div>
+        <table id="tablaUltimosGastos" class="tabla-gastos">
+            <thead><tr><th data-i18n="colFecha">Fecha</th><th data-i18n="colDesc">Descripción</th><th style="text-align: right;" data-i18n="colValor">Valor</th></tr></thead>
+            <tbody></tbody>
+            <tfoot><tr><td colspan="2" data-i18n="lblTotal">TOTAL</td><td id="totalUltimosGastos" class="gasto-valor"></td></tr></tfoot>
+        </table>
+    </div>
+    
+    <div id="mensual" class="pantalla">
+        <h2 data-i18n="titleResumenMensual">Resumen Mensual</h2>
+        <div class="filtro-container-inline">
+            <select id="filtroMes" onchange="actualizarResumenMensual()"></select>
+            <select id="filtroAnioMensual" onchange="actualizarResumenMensual()"></select>
+        </div>
+        
+        <div class="payment-type-group payment-filters-grid">
+            <input type="radio" id="filtroPagoTotalMensual" name="filtroTipoPagoMensual" value="TODOS" checked>
+            <label for="filtroPagoTotalMensual"><span data-i18n="lblTotal">Total</span><span class="pago-sum" id="sum-total-mensual">$0</span></label>
+            
+            <input type="radio" id="filtroPagoContadoMensual" name="filtroTipoPagoMensual" value="Contado">
+            <label for="filtroPagoContadoMensual"><i class="fas fa-money-bill-wave"></i><span class="pago-sum" id="sum-contado-mensual">$0</span></label>
+            
+            <input type="radio" id="filtroPagoTarjetaMensual" name="filtroTipoPagoMensual" value="Tarjeta">
+            <label for="filtroPagoTarjetaMensual"><i class="fas fa-credit-card"></i><span class="pago-sum" id="sum-tarjeta-mensual">$0</span></label>
+            
+            <input type="radio" id="filtroPagoTransfMensual" name="filtroTipoPagoMensual" value="Transferencia">
+            <label for="filtroPagoTransfMensual"><i class="fas fa-exchange-alt"></i><span class="pago-sum" id="sum-transf-mensual">$0</span></label>
+        </div>
+
+        <h3 data-i18n="titleTotalCategoria">Total por Categoría</h3>
+        <table id="tablaResumenMensual" class="tabla-gastos">
+            <thead><tr><th data-i18n="colCategoria">Categoría</th><th style="text-align: right;" data-i18n="colTotal">Total</th><th>%</th></tr></thead>
+            <tbody></tbody>
+            <tfoot><tr><td data-i18n="lblTotal">TOTAL</td><td></td><td id="totalResumenMensual" class="gasto-valor"></td></tr></tfoot>
+        </table>
+        
+        <div id="detalleMensual">
+            <h3><span data-i18n="titleDetalle">Detalle</span>: <span id="detalleCategoriaMensual"></span></h3>
+            <input type="text" id="buscarDetalleMensual" class="input-buscar" data-i18n-ph="phBuscar" placeholder="Buscar..." onkeyup="filtrarTablaDetalle('buscarDetalleMensual', 'tablaDetalleMensual')">
+            <table id="tablaDetalleMensual" class="tabla-gastos">
+                <thead><tr><th data-i18n="colFecha">Fecha</th><th data-i18n="colDesc">Descripción</th><th data-i18n="colValor">Valor</th></tr></thead>
+                <tbody></tbody>
+                <tfoot><tr><td colspan="2" data-i18n="lblTotalGeneral">TOTAL GENERAL</td><td id="totalDetalleMensual" class="gasto-valor"></td></tr></tfoot>
+            </table>
+            <div class="pagination-controls">
+                <button class="btn btn-secondary" onclick="cambiarPagina(-1)" data-i18n="btnAnterior">Anterior</button>
+                <span id="pageInfoMensual">Pág 1</span>
+                <button class="btn btn-secondary" onclick="cambiarPagina(1)" data-i18n="btnSiguiente">Siguiente</button>
+            </div>
+        </div>
+        
+        <div class="chart-container" id="chartMensualContainer"><canvas id="chartMensualCanvas"></canvas></div>
+        <button class="btn btn-secondary" id="btnExportMes" onclick="exportarReporteCSV('mensual')" data-i18n="btnCsvMes">⬇️ CSV Mes</button> 
+    </div>
+
+    <div id="historico" class="pantalla">
+        <h2 data-i18n="titleResumenAnual">Resumen Anual</h2>
+        <div class="filtro-container-inline">
+            <select id="filtroAnioHistorico" onchange="actualizarResumenHistorico(true)"></select>
+        </div>
+        
+        <div class="payment-type-group payment-filters-grid">
+            <input type="radio" id="filtroPagoTotalHistorico" name="filtroTipoPagoHistorico" value="TODOS" checked>
+            <label for="filtroPagoTotalHistorico"><span data-i18n="lblTotal">Total</span><span class="pago-sum" id="sum-total-historico">$0</span></label>
+            
+            <input type="radio" id="filtroPagoContadoHistorico" name="filtroTipoPagoHistorico" value="Contado">
+            <label for="filtroPagoContadoHistorico"><i class="fas fa-money-bill-wave"></i><span class="pago-sum" id="sum-contado-historico">$0</span></label>
+            
+            <input type="radio" id="filtroPagoTarjetaHistorico" name="filtroTipoPagoHistorico" value="Tarjeta">
+            <label for="filtroPagoTarjetaHistorico"><i class="fas fa-credit-card"></i><span class="pago-sum" id="sum-tarjeta-historico">$0</span></label>
+            
+            <input type="radio" id="filtroPagoTransfHistorico" name="filtroTipoPagoHistorico" value="Transferencia">
+            <label for="filtroPagoTransfHistorico"><i class="fas fa-exchange-alt"></i><span class="pago-sum" id="sum-transf-historico">$0</span></label>
+        </div>
+
+        <h3 data-i18n="titleTotalCatAnio">Total Categorías (Año)</h3>
+        <table id="tablaResumenHistorico" class="tabla-gastos">
+            <thead><tr><th data-i18n="colCategoria">Categoría</th><th style="text-align: right;" data-i18n="colTotal">Total</th><th>%</th></tr></thead>
+            <tbody></tbody>
+            <tfoot><tr><td data-i18n="lblTotal">TOTAL</td><td></td><td id="totalResumenHistorico" class="gasto-valor"></td></tr></tfoot>
+        </table>
+        
+        <div id="detalleHistorico">
+            <h3><span data-i18n="titleDetalle">Detalle</span>: <span id="detalleCategoriaHistorico"></span></h3>
+            <input type="text" id="buscarDetalleHistorico" class="input-buscar" data-i18n-ph="phBuscar" placeholder="Buscar..." onkeyup="filtrarTablaDetalle('buscarDetalleHistorico', 'tablaDetalleHistorico')">
+            <table id="tablaDetalleHistorico" class="tabla-gastos">
+                <thead><tr><th data-i18n="colFecha">Fecha</th><th data-i18n="colDesc">Descripción</th><th data-i18n="colValor">Valor</th></tr></thead>
+                <tbody></tbody>
+                <tfoot><tr><td colspan="2" data-i18n="lblTotalGeneral">TOTAL GENERAL</td><td id="totalDetalleHistorico" class="gasto-valor"></td></tr></tfoot>
+            </table>
+            <div class="pagination-controls">
+                <button class="btn btn-secondary" onclick="cambiarPagina(-1)" data-i18n="btnAnterior">Anterior</button>
+                <span id="pageInfoHistorico">Pág 1</span>
+                <button class="btn btn-secondary" onclick="cambiarPagina(1)" data-i18n="btnSiguiente">Siguiente</button>
+            </div>
+        </div>
+        
+        <div class="chart-container" id="chartHistoricoContainer"><canvas id="chartHistoricoCanvas"></canvas></div>
+        <div class="chart-container" id="chartHistoricoMesesContainer"><canvas id="chartHistoricoMesesCanvas"></canvas></div>
+        <button class="btn btn-secondary" id="btnExportYear" onclick="exportarReporteCSV('historico')" data-i18n="btnCsvAnio">⬇️ CSV Año</button> 
+    </div>
+
+    <div id="configuracion" class="pantalla">
+        <h2 data-i18n="menuConfig">Configuración</h2>
+        <div class="form-group">
+            <label data-i18n="lblMoneda">Moneda:</label>
+            <select id="configMoneda" onchange="cambiarConfig('moneda', this.value)">
+                <option value="$">$ USD</option><option value="€">€ EUR</option>
+                <option value="MXN$">MXN$</option><option value="S/">S/ PEN</option>
+                <option value="COL$">COL$</option><option value="Bs.">Bs.</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label data-i18n="lblIdioma">Idioma:</label>
+            <select id="configIdioma" onchange="cambiarConfig('idioma', this.value)">
+                <option value="es">Español</option><option value="en">English</option>
+            </select>
+        </div>
+
+        <h3 data-i18n="titleCategorias">Categorías</h3>
+        <table id="tablaCategorias" class="tabla-gastos">
+            <thead><tr><th data-i18n="colNombre">Nombre</th><th data-i18n="colAccion">Acción</th></tr></thead>
+            <tbody></tbody>
+        </table>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <input type="text" id="nuevaCategoria" data-i18n-ph="phNueva" placeholder="Nueva...">
+            <button class="btn btn-primary" id="btnAddCategory" onclick="agregarCategoria()" style="margin-top:0; width:auto;">+</button>
+        </div>
+
+        <h3 style="margin-top: 30px;" data-i18n="titleDatos">Datos</h3>
+        <button class="btn btn-success" onclick="compartirBackupJSON()" data-i18n="btnBackup">⬆️ Backup (Guardar y Compartir)</button>
+        <input type="file" id="inputImportar" style="display: none;">
+        <button class="btn btn-primary" id="btnImportarTrigger" onclick="document.getElementById('inputImportar').click()" data-i18n="btnImportar">⬇️ Importar</button>
+        <button class="btn btn-danger" onclick="confirmarLimpiarTodosLosDatos()" data-i18n="btnBorrarTodo">⚠️ Borrar Todo</button>
+    </div>
+
+    <div id="modalEdicion" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="cerrarModal()">&times;</span>
+            <h2 data-i18n="titleEditar">Editar</h2>
+            <div class="form-group"><input type="date" id="modalFecha"></div>
+            <div class="form-group"><select id="modalCategoria"></select></div>
+            <div class="form-group"><input type="text" id="modalDescripcion"></div>
+            <div class="form-group"><input type="text" id="modalValor" inputmode="decimal"></div>
+            <div class="payment-type-group">
+                <input type="radio" id="modalPagoContado" name="modalTipoPago" value="Contado">
+                <label for="modalPagoContado"><i class="fas fa-money-bill-wave"></i> <span data-i18n="lblContado">Contado</span></label>
+                
+                <input type="radio" id="modalPagoTarjeta" name="modalTipoPago" value="Tarjeta">
+                <label for="modalPagoTarjeta"><i class="fas fa-credit-card"></i> <span data-i18n="lblTarjeta">Tarjeta</span></label>
+                
+                <input type="radio" id="modalPagoTransferencia" name="modalTipoPago" value="Transferencia">
+                <label for="modalPagoTransferencia"><i class="fas fa-exchange-alt"></i> <span data-i18n="lblTransf">Transf.</span></label>
+            </div>
+            <div class="modal-botones-row">
+                <button class="btn btn-success" onclick="guardarEdicionDesdeModal()" data-i18n="btnGuardar">Guardar</button>
+                <button class="btn btn-danger" onclick="confirmarEliminarGasto()" data-i18n="btnBorrar">Borrar</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modalEdicionCategoria" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="cerrarModalCategoria()">&times;</span>
+            <h2 data-i18n="titleRenombrar">Renombrar</h2>
+            <div class="form-group"><input type="text" id="modalCategoriaNombre"></div>
+            <div class="modal-botones-row">
+                <button class="btn btn-success" onclick="guardarEdicionCategoria()" data-i18n="btnGuardar">Guardar</button>
+                <button class="btn btn-secondary" onclick="cerrarModalCategoria()" data-i18n="btnCancelar">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modalConfirmacion" class="modal">
+        <div class="modal-content">
+            <h2 data-i18n="titleConfirmar">Confirmar</h2>
+            <p id="modalConfirmBody" style="text-align: center; margin-bottom: 20px;"></p>
+            <div class="modal-botones-row">
+                <button class="btn btn-danger" onclick="ejecutarConfirmacion()" data-i18n="btnSi">Sí</button>
+                <button class="btn btn-secondary" onclick="cerrarModalConfirmacion()" data-i18n="btnNo">No</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">Notificación</div>
+
+    <div class="nav-tabs">
+        <button onclick="mostrarPantalla('gasto', this)" class="active"><i class="fas fa-plus-circle"></i><span data-i18n="menuGasto">Gasto</span></button>
+        <button onclick="mostrarPantalla('mensual', this)"><i class="fas fa-chart-pie"></i><span data-i18n="menuMes">Mes</span></button>
+        <button onclick="mostrarPantalla('historico', this)"><i class="fas fa-calendar-alt"></i><span data-i18n="menuAnio">Año</span></button>
+        <button onclick="mostrarPantalla('configuracion', this)"><i class="fas fa-cog"></i><span data-i18n="menuConfig">Config</span></button>
+    </div>
+
+</body>
+
+<script>
+
+const MONTH_NAMES_FULL = {
+    es: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+    en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+};
+
+const TRADUCTIONS = {
+    es: {
+        alertMissing: "Rellena todos los campos.", alertGuardado: "¡Guardado!",
+        confirmDelete: "¿Eliminar?", confirmDeleteAll: "¿BORRAR TODO?",
+        alertNoExport: "Sin datos.", alertCSVEmpty: "Vacío.",
+        alertImportSuccess: (c) => `Importados ${c}.`, alertImportSuccessJSON: "Backup OK.",
+        alertImportErrorJSON: "Archivo mal.", alertCatNombreExiste: (n) => `"${n}" existe.`,
+        alertCatNoSePuedeBorrar: (n) => `"${n}" tiene gastos.`, modalConfirmDeleteCat: (n) => `¿Borrar "${n}"?`,
+        toastGastoEliminado: "Eliminado.", toastCategoriaGuardada: "Guardada.", toastCategoriaEliminada: "Eliminada.",
+        
+        appTitle: "Control de Gastos", titleIngresoGasto: "Ingreso de Gasto", lblFecha: "Fecha:", lblCategoria: "Categoría:",
+        lblDescripcion: "Descripción:", phEjCafe: "Ej: Café", lblValor: "Valor:", lblTipoPago: "Tipo de Pago:",
+        lblContado: "Contado", lblTarjeta: "Tarjeta", lblTransf: "Transf.", btnAddGasto: "➕ Añadir Gasto",
+        titleGastosMes: "Gastos del Mes", lblClicEditar: "Clic para editar", colFecha: "Fecha", colDesc: "Descripción",
+        colValor: "Valor", lblTotal: "TOTAL", titleResumenMensual: "Resumen Mensual", titleTotalCategoria: "Total por Categoría",
+        colTotal: "Total", colCategoria: "Categoría", titleDetalle: "Detalle", phBuscar: "Buscar...", lblTotalGeneral: "TOTAL GENERAL",
+        btnAnterior: "Anterior", btnSiguiente: "Siguiente", btnCsvMes: "⬇️ CSV Mes", titleResumenAnual: "Resumen Anual",
+        titleTotalCatAnio: "Total Categorías (Año)", btnCsvAnio: "⬇️ CSV Año", menuConfig: "Configuración",
+        lblMoneda: "Moneda:", lblIdioma: "Idioma:", titleCategorias: "Categorías", colNombre: "Nombre", colAccion: "Acción",
+        phNueva: "Nueva...", titleDatos: "Datos", btnBackup: "⬆️ Backup (Guardar y Compartir)", btnImportar: "⬇️ Importar",
+        btnBorrarTodo: "⚠️ Borrar Todo", titleEditar: "Editar", btnGuardar: "Guardar", btnBorrar: "Borrar",
+        titleRenombrar: "Renombrar", btnCancelar: "Cancelar", titleConfirmar: "Confirmar", btnSi: "Sí", btnNo: "No",
+        menuGasto: "Gasto", menuMes: "Mes", menuAnio: "Año", 
+        btnCargado: "¡Cargado!" 
+    },
+    en: {
+        alertMissing: "Missing fields.", alertGuardado: "Saved!", confirmDelete: "Delete?",
+        confirmDeleteAll: "DELETE ALL?", alertNoExport: "No data.", alertCSVEmpty: "Empty.",
+        alertImportSuccess: (c) => `Imported ${c}.`, alertImportSuccessJSON: "Backup OK.",
+        alertImportErrorJSON: "File error.", alertCatNombreExiste: (n) => `"${n}" exists.`,
+        alertCatNoSePuedeBorrar: (n) => `"${n}" used.`, modalConfirmDeleteCat: (n) => `Delete "${n}"?`,
+        toastGastoEliminado: "Deleted.", toastCategoriaGuardada: "Saved.", toastCategoriaEliminada: "Deleted.",
+        
+        appTitle: "Expense Tracker", titleIngresoGasto: "Add Expense", lblFecha: "Date:", lblCategoria: "Category:",
+        lblDescripcion: "Description:", phEjCafe: "Ex: Coffee", lblValor: "Value:", lblTipoPago: "Payment Type:",
+        lblContado: "Cash", lblTarjeta: "Card", lblTransf: "Transfer", btnAddGasto: "➕ Add Expense",
+        titleGastosMes: "Monthly Expenses", lblClicEditar: "Click to edit", colFecha: "Date", colDesc: "Description",
+        colValor: "Value", lblTotal: "TOTAL", titleResumenMensual: "Monthly Summary", titleTotalCategoria: "Total by Category",
+        colTotal: "Total", colCategoria: "Category", titleDetalle: "Detail", phBuscar: "Search...", lblTotalGeneral: "GRAND TOTAL",
+        btnAnterior: "Prev", btnSiguiente: "Next", btnCsvMes: "⬇️ CSV Month", titleResumenAnual: "Annual Summary",
+        titleTotalCatAnio: "Total Categories (Year)", btnCsvAnio: "⬇️ CSV Year", menuConfig: "Configuration",
+        lblMoneda: "Currency:", lblIdioma: "Language:", titleCategorias: "Categories", colNombre: "Name", colAccion: "Action",
+        phNueva: "New...", titleDatos: "Data", btnBackup: "⬆️ Backup (Save & Share)", btnImportar: "⬇️ Import",
+        btnBorrarTodo: "⚠️ Delete All", titleEditar: "Edit", btnGuardar: "Save", btnBorrar: "Delete",
+        titleRenombrar: "Rename", btnCancelar: "Cancel", titleConfirmar: "Confirm", btnSi: "Yes", btnNo: "No",
+        menuGasto: "Expense", menuMes: "Month", menuAnio: "Year",
+        btnCargado: "Loaded!"
+    }
+};
+
+let gastos = [];
+let config = {};
+let descripcionesUsadas = [];
+let gastoEditandoId = null;
+let categoriaEditandoNombreAntiguo = null;
+let filtroPagoMensual = 'TODOS';
+let filtroPagoHistorico = 'TODOS';
+let filtroCategoriaHistorico = 'TODOS';
+let chartMensualInstance = null;
+let chartHistoricoInstance = null;
+let chartHistoricoMesesInstance = null;
+let confirmCallback = null;
+let toastTimeout = null;
+
+const ITEMS_PER_PAGE = 25;
+let paginaActual = 1;
+let listaDetalleActual = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels); 
+    cargarDatos();
+    inicializarUI();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+});
+
+function cargarDatos() {
+    cargarConfig();
+    gastos = JSON.parse(localStorage.getItem('gastos_v2')) || [];
+    gastos.forEach(g => { if (!g.tipoPago) g.tipoPago = 'Contado'; });
+    gastos.sort(sortData);
+    descripcionesUsadas = [...new Set(gastos.map(g => g.descripcion))];
+    
+    document.getElementById('configMoneda').value = config.moneda;
+    document.getElementById('configIdioma').value = config.idioma;
+    document.getElementById('gastoFecha').value = new Date().toISOString().split('T')[0];
+    
+    actualizarSelectCategorias();
+    renderizarTablaCategorias();
+    actualizarSugerenciasDescripciones(descripcionesUsadas);
+    inicializarSelectoresMesAnio(); // Punto 3: Setea mes/año actual
+    aplicarIdioma();
+    
+    renderizarGastosDelMes();
+    actualizarResumenMensual();
+    actualizarResumenHistorico();
+}
+
+function aplicarIdioma() {
+    const lang = config.idioma;
+    const t = TRADUCTIONS[lang];
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if(t[key]) el.textContent = t[key];
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const key = el.getAttribute('data-i18n-ph');
+        if(t[key]) el.placeholder = t[key];
+    });
+    
+    // Guardamos selección actual antes de recrear
+    const sm = document.getElementById('filtroMes');
+    const valAnterior = sm.value; 
+    sm.innerHTML = '';
+    MONTH_NAMES_FULL[lang].forEach((m, i) => sm.add(new Option(m, i+1)));
+    if(valAnterior) sm.value = valAnterior;
+
+    actualizarResumenMensual();
+    actualizarResumenHistorico();
+}
+
+function inicializarUI() {
+    mostrarPantalla('gasto', document.querySelector('.nav-tabs button.active'));
+    window.onclick = (e) => {
+        if (e.target == document.getElementById('modalEdicion')) cerrarModal();
+        if (e.target == document.getElementById('modalEdicionCategoria')) cerrarModalCategoria();
+        if (e.target == document.getElementById('modalConfirmacion')) cerrarModalConfirmacion();
+    };
+    document.getElementById('inputImportar').addEventListener('change', importarDatos);
+    document.querySelectorAll('input[name="filtroTipoPagoMensual"]').forEach(r => {
+        r.addEventListener('change', (e) => { filtroPagoMensual = e.target.value; actualizarResumenMensual(); });
+    });
+    document.querySelectorAll('input[name="filtroTipoPagoHistorico"]').forEach(r => {
+        r.addEventListener('change', (e) => { filtroPagoHistorico = e.target.value; actualizarResumenHistorico(true); });
+    });
+}
+
+function mostrarPantalla(id, btn) {
+    document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+    document.getElementById(id).classList.add('activa');
+    document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+function renderizarGastosDelMes() {
+    const tbody = document.querySelector('#tablaUltimosGastos tbody');
+    tbody.innerHTML = '';
+    const hoy = new Date();
+    const lista = gastos.filter(g => {
+        const [y, m] = g.fecha.split('-');
+        return parseInt(m) === (hoy.getMonth() + 1) && parseInt(y) === hoy.getFullYear();
+    });
+    let total = 0;
+    lista.forEach(g => {
+        total += g.valor;
+        const tr = document.createElement('tr');
+        tr.onclick = () => abrirModalEdicion(g.id);
+        const [y, m, d] = g.fecha.split('-');
+        tr.innerHTML = `<td>${d}/${m}</td><td>${g.descripcion}<div class="gasto-categoria-subtexto">${g.categoria}</div></td><td class="gasto-valor">${formatearMoneda(g.valor)}</td>`;
+        tbody.appendChild(tr);
+    });
+    document.getElementById('totalUltimosGastos').textContent = formatearMoneda(total);
+}
+
+function cambiarPagina(delta) {
+    const totalPaginas = Math.ceil(listaDetalleActual.length / ITEMS_PER_PAGE);
+    const nuevaPagina = paginaActual + delta;
+    if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+        paginaActual = nuevaPagina;
+        const esMensual = document.getElementById('mensual').classList.contains('activa');
+        const tablaId = esMensual ? 'tablaDetalleMensual' : 'tablaDetalleHistorico';
+        const labelInfoId = esMensual ? 'pageInfoMensual' : 'pageInfoHistorico';
+        const totalId = esMensual ? 'totalDetalleMensual' : 'totalDetalleHistorico';
+        renderizarTablaDetallePaginada(tablaId, totalId, labelInfoId);
+    }
+}
+
+function renderizarTablaDetallePaginada(tablaId, totalId, labelInfoId) {
+    const tbody = document.querySelector(`#${tablaId} tbody`);
+    tbody.innerHTML = '';
+    const inicio = (paginaActual - 1) * ITEMS_PER_PAGE;
+    const fin = inicio + ITEMS_PER_PAGE;
+    const gastosPagina = listaDetalleActual.slice(inicio, fin);
+    let totalGlobal = 0;
+    listaDetalleActual.forEach(g => totalGlobal += g.valor); 
+    gastosPagina.forEach(g => {
+        const tr = document.createElement('tr');
+        tr.onclick = () => abrirModalEdicion(g.id);
+        const [y, m, d] = g.fecha.split('-');
+        tr.innerHTML = `<td>${d}/${m}</td><td>${g.descripcion}</td><td class="gasto-valor">${formatearMoneda(g.valor)}</td>`;
+        tbody.appendChild(tr);
+    });
+    document.getElementById(totalId).textContent = formatearMoneda(totalGlobal); 
+    const totalPaginas = Math.ceil(listaDetalleActual.length / ITEMS_PER_PAGE) || 1;
+    const txtPag = config.idioma === 'es' ? 'Pág' : 'Page';
+    const txtReg = config.idioma === 'es' ? 'reg.' : 'rec.';
+    document.getElementById(labelInfoId).textContent = `${txtPag} ${paginaActual} / ${totalPaginas} (${listaDetalleActual.length} ${txtReg})`;
+}
+
+function agregarGasto() {
+    const fecha = document.getElementById('gastoFecha').value;
+    const cat = document.getElementById('gastoCategoria').value;
+    const desc = document.getElementById('gastoDescripcion').value.trim();
+    const val = parsearValor(document.getElementById('gastoValor').value);
+    const pago = document.querySelector('input[name="tipoPago"]:checked').value;
+
+    if (!fecha || !cat || !desc || isNaN(val) || val <= 0) return mostrarToast(TRADUCTIONS[config.idioma].alertMissing, 'error');
+
+    gastos.push({ id: Date.now(), fecha, categoria: cat, descripcion: desc, valor: val, tipoPago: pago });
+    gastos.sort(sortData);
+    guardarGastos();
+    inicializarSelectoresMesAnio();
+
+    document.getElementById('gastoDescripcion').value = '';
+    document.getElementById('gastoValor').value = '';
+    document.getElementById('gastoCategoria').value = cat; 
+    document.getElementById('gastoFecha').value = fecha;
+
+    const btn = document.getElementById('btnAddGasto');
+    const originalText = btn.textContent; 
+    const originalHTML = btn.innerHTML;
+    const originalClass = btn.className;
+    
+    btn.className = 'btn btn-success';
+    btn.innerHTML = `<i class="fas fa-check"></i> ${TRADUCTIONS[config.idioma].alertGuardado}`;
+    setTimeout(() => {
+        btn.className = originalClass;
+        btn.innerHTML = originalHTML;
+    }, 2000);
+
+    renderizarGastosDelMes();
+}
+
+function actualizarResumenMensual() {
+    document.getElementById('detalleMensual').style.display = 'none';
+    document.getElementById('chartMensualContainer').style.display = 'block';
+    
+    const mes = document.getElementById('filtroMes').value;
+    const anio = document.getElementById('filtroAnioMensual').value;
+    let lista = gastos.filter(g => { const [y, m] = g.fecha.split('-'); return parseInt(y) == anio && parseInt(m) == mes; });
+
+    let s = { t:0, c:0, tr:0, tf:0 };
+    lista.forEach(g => {
+        s.t += g.valor;
+        if(g.tipoPago=='Contado') s.c += g.valor;
+        if(g.tipoPago=='Tarjeta') s.tr += g.valor;
+        if(g.tipoPago=='Transferencia') s.tf += g.valor;
+    });
+    document.getElementById('sum-total-mensual').textContent = formatearMoneda(s.t);
+    document.getElementById('sum-contado-mensual').textContent = formatearMoneda(s.c);
+    document.getElementById('sum-tarjeta-mensual').textContent = formatearMoneda(s.tr);
+    document.getElementById('sum-transf-mensual').textContent = formatearMoneda(s.tf);
+
+    if(filtroPagoMensual !== 'TODOS') lista = lista.filter(g => g.tipoPago === filtroPagoMensual);
+    
+    renderizarTablaResumen(lista, 'tablaResumenMensual', 'totalResumenMensual', (cat) => {
+        document.getElementById('chartMensualContainer').style.display = 'none';
+        listaDetalleActual = lista.filter(g => g.categoria === cat);
+        paginaActual = 1;
+        renderizarTablaDetallePaginada('tablaDetalleMensual', 'totalDetalleMensual', 'pageInfoMensual');
+        document.getElementById('detalleCategoriaMensual').textContent = cat;
+        document.getElementById('detalleMensual').style.display = 'block';
+    });
+    actualizarGraficoCategorias(lista, 'chartMensualCanvas', 'chartMensualInstance');
+}
+
+function actualizarResumenHistorico(resetCategoria = false) {
+    if (resetCategoria) filtroCategoriaHistorico = 'TODOS';
+    document.getElementById('detalleHistorico').style.display = 'none';
+    document.getElementById('chartHistoricoContainer').style.display = (filtroCategoriaHistorico === 'TODOS') ? 'block' : 'none';
+    
+    const anio = document.getElementById('filtroAnioHistorico').value;
+    const listaAnio = gastos.filter(g => g.fecha.startsWith(anio));
+
+    let s = { t:0, c:0, tr:0, tf:0 };
+    listaAnio.forEach(g => {
+        s.t += g.valor;
+        if(g.tipoPago=='Contado') s.c += g.valor;
+        if(g.tipoPago=='Tarjeta') s.tr += g.valor;
+        if(g.tipoPago=='Transferencia') s.tf += g.valor;
+    });
+    document.getElementById('sum-total-historico').textContent = formatearMoneda(s.t);
+    document.getElementById('sum-contado-historico').textContent = formatearMoneda(s.c);
+    document.getElementById('sum-tarjeta-historico').textContent = formatearMoneda(s.tr);
+    document.getElementById('sum-transf-historico').textContent = formatearMoneda(s.tf);
+
+    let listaFiltrada = [...listaAnio];
+    if(filtroPagoHistorico !== 'TODOS') listaFiltrada = listaFiltrada.filter(g => g.tipoPago === filtroPagoHistorico);
+    
+    renderizarTablaResumen(listaFiltrada, 'tablaResumenHistorico', 'totalResumenHistorico', (cat) => {
+        filtroCategoriaHistorico = cat;
+        actualizarResumenHistorico(false);
+        
+        let sub = listaAnio.filter(g => g.categoria === cat);
+        if(filtroPagoHistorico !== 'TODOS') sub = sub.filter(g => g.tipoPago === filtroPagoHistorico);
+        listaDetalleActual = sub;
+        paginaActual = 1;
+        
+        renderizarTablaDetallePaginada('tablaDetalleHistorico', 'totalDetalleHistorico', 'pageInfoHistorico');
+        
+        document.getElementById('detalleCategoriaHistorico').textContent = cat;
+        document.getElementById('detalleHistorico').style.display = 'block';
+        document.getElementById('detalleHistorico').scrollIntoView({behavior:'smooth'});
+    });
+    
+    let graficos = [...listaFiltrada];
+    if(filtroCategoriaHistorico !== 'TODOS') graficos = graficos.filter(g => g.categoria === filtroCategoriaHistorico);
+    actualizarGraficoCategorias(graficos, 'chartHistoricoCanvas', 'chartHistoricoInstance');
+    actualizarGraficoGastosPorMes(graficos);
+}
+
+function renderizarTablaResumen(lista, tablaId, totalId, onRowClick) {
+    const tbody = document.querySelector(`#${tablaId} tbody`);
+    tbody.innerHTML = '';
+    const cats = {}; let total = 0;
+    lista.forEach(g => { cats[g.categoria] = (cats[g.categoria]||0) + g.valor; total += g.valor; });
+    
+    Object.entries(cats).sort((a,b)=>b[1]-a[1]).forEach(([cat, val]) => {
+        const tr = document.createElement('tr');
+        const pct = total>0 ? Math.round((val/total)*100) : 0;
+        if (tablaId === 'tablaResumenHistorico' && cat === filtroCategoriaHistorico) {
+            tr.style.backgroundColor = 'rgba(0, 123, 255, 0.1)'; tr.style.fontWeight = 'bold';
+        }
+        tr.innerHTML = `<td>${cat}</td><td class="gasto-valor">${formatearMoneda(val)}</td><td>${pct}%</td>`;
+        tr.onclick = () => onRowClick(cat);
+        tbody.appendChild(tr);
+    });
+    document.getElementById(totalId).textContent = formatearMoneda(total);
+}
+
+function cargarConfig() {
+    const def = { moneda: '$', idioma: 'es', categorias: ['Comida', 'Transporte', 'Hogar', 'Salud', 'Ocio', 'Otros'] };
+    const loaded = JSON.parse(localStorage.getItem('config_v2'));
+    config = loaded ? { ...def, ...loaded } : def;
+    if(!Array.isArray(config.categorias)) config.categorias = def.categorias;
+}
+
+function cambiarConfig(type, value) {
+    if (type === 'moneda') { 
+        config.moneda = value; 
+        localStorage.setItem('config_v2', JSON.stringify(config)); 
+        cargarDatos();
+    }
+    else if (type === 'idioma') { 
+        config.idioma = value; 
+        localStorage.setItem('config_v2', JSON.stringify(config)); 
+        aplicarIdioma(); 
+    }
+}
+
+function guardarGastos() {
+    localStorage.setItem('gastos_v2', JSON.stringify(gastos));
+    descripcionesUsadas = [...new Set(gastos.map(g => g.descripcion))];
+    actualizarSugerenciasDescripciones(descripcionesUsadas);
+}
+function sortData(a, b) { return new Date(b.fecha) - new Date(a.fecha) || b.id - a.id; }
+function parsearValor(s) { return parseFloat(s?.toString().replace(',', '.') || 0); }
+function formatearMoneda(v) { return `${config.moneda} ${(v||0).toLocaleString('es-EC', {minimumFractionDigits:2})}`; }
+function mostrarToast(m, t) { const x = document.getElementById('toast'); x.textContent=m; x.className=`show ${t}`; clearTimeout(toastTimeout); toastTimeout=setTimeout(()=>x.className='',3000); }
+
+function abrirModalEdicion(id) {
+    const g = gastos.find(x => x.id === id);
+    if(!g) return;
+    gastoEditandoId = id;
+    document.getElementById('modalFecha').value = g.fecha;
+    document.getElementById('modalCategoria').value = g.categoria;
+    document.getElementById('modalDescripcion').value = g.descripcion;
+    document.getElementById('modalValor').value = g.valor;
+    const rs = document.getElementsByName('modalTipoPago');
+    for(const r of rs) if(r.value===g.tipoPago) r.checked=true;
+    document.getElementById('modalEdicion').style.display='block';
+}
+function cerrarModal() { document.getElementById('modalEdicion').style.display='none'; gastoEditandoId=null; }
+function guardarEdicionDesdeModal() {
+    const g = gastos.find(x => x.id === gastoEditandoId);
+    if(g) {
+        g.fecha = document.getElementById('modalFecha').value;
+        g.categoria = document.getElementById('modalCategoria').value;
+        g.descripcion = document.getElementById('modalDescripcion').value;
+        g.valor = parsearValor(document.getElementById('modalValor').value);
+        g.tipoPago = document.querySelector('input[name="modalTipoPago"]:checked').value;
+        gastos.sort(sortData);
+        guardarGastos(); location.reload();
+    }
+}
+function confirmarEliminarGasto() {
+    mostrarModalConfirmacion(TRADUCTIONS[config.idioma].confirmDelete, () => {
+        gastos = gastos.filter(g => g.id !== gastoEditandoId); guardarGastos(); location.reload();
+    });
+}
+
+function agregarCategoria() {
+    const n = document.getElementById('nuevaCategoria').value.trim();
+    if(!n) return;
+    if(config.categorias.includes(n)) return mostrarToast(TRADUCTIONS[config.idioma].alertCatNombreExiste(n), 'error');
+    config.categorias.push(n);
+    config.categorias.sort();
+    localStorage.setItem('config_v2', JSON.stringify(config));
+    document.getElementById('nuevaCategoria').value = '';
+    actualizarSelectCategorias();
+    renderizarTablaCategorias();
+}
+function actualizarSelectCategorias() {
+    const o = config.categorias.map(c => `<option value="${c}">${c}</option>`).join('');
+    document.getElementById('gastoCategoria').innerHTML = o;
+    document.getElementById('modalCategoria').innerHTML = o;
+}
+function renderizarTablaCategorias() {
+    const tb = document.querySelector('#tablaCategorias tbody'); tb.innerHTML='';
+    config.categorias.forEach((c, i) => tb.innerHTML+=`<tr><td>${c}</td><td style="text-align:center"><button class="btn-accion-tabla btn-primary" onclick="abrirModalCategoria(${i})">✎</button><button class="btn-accion-tabla btn-danger" onclick="confirmarEliminarCategoria(${i})">🗑</button></td></tr>`);
+}
+function abrirModalCategoria(i) { categoriaEditandoNombreAntiguo = config.categorias[i]; document.getElementById('modalCategoriaNombre').value=categoriaEditandoNombreAntiguo; document.getElementById('modalEdicionCategoria').style.display='block'; }
+function cerrarModalCategoria() { document.getElementById('modalEdicionCategoria').style.display='none'; }
+function guardarEdicionCategoria() {
+    const n = document.getElementById('modalCategoriaNombre').value.trim();
+    if(n && n!==categoriaEditandoNombreAntiguo) {
+        if(config.categorias.includes(n)) return mostrarToast(TRADUCTIONS[config.idioma].alertCatNombreExiste(n), 'error');
+        config.categorias[config.categorias.indexOf(categoriaEditandoNombreAntiguo)] = n;
+        gastos.forEach(g => { if(g.categoria===categoriaEditandoNombreAntiguo) g.categoria=n; });
+        localStorage.setItem('config_v2', JSON.stringify(config)); guardarGastos(); location.reload();
+    }
+}
+function confirmarEliminarCategoria(i) {
+    const c = config.categorias[i];
+    if(gastos.some(g=>g.categoria===c)) return mostrarToast(TRADUCTIONS[config.idioma].alertCatNoSePuedeBorrar(c), 'error');
+    mostrarModalConfirmacion(TRADUCTIONS[config.idioma].modalConfirmDeleteCat(c), () => { config.categorias.splice(i,1); localStorage.setItem('config_v2', JSON.stringify(config)); guardarGastos(); location.reload(); });
+}
+
+function mostrarModalConfirmacion(t, cb) { document.getElementById('modalConfirmBody').textContent=t; confirmCallback=cb; document.getElementById('modalConfirmacion').style.display='block'; }
+function ejecutarConfirmacion() { if(confirmCallback) confirmCallback(); cerrarModalConfirmacion(); }
+function cerrarModalConfirmacion() { document.getElementById('modalConfirmacion').style.display='none'; }
+
+// Punto 3: Inicialización con fecha actual forzada
+function inicializarSelectoresMesAnio() {
+    const sm = document.getElementById('filtroMes'); const sa = document.getElementById('filtroAnioMensual'); const sh = document.getElementById('filtroAnioHistorico');
+    sm.innerHTML=''; sa.innerHTML=''; sh.innerHTML='';
+    const ys = [...new Set(gastos.map(g=>parseInt(g.fecha.split('-')[0])))].sort((a,b)=>b-a);
+    const cur = new Date().getFullYear(); if(!ys.includes(cur)) ys.unshift(cur);
+    ys.forEach(y => { sa.add(new Option(y,y)); sh.add(new Option(y,y)); });
+    MONTH_NAMES_FULL[config.idioma].forEach((m,i) => sm.add(new Option(m,i+1)));
+
+    // Forzamos el mes y año actual al cargar
+    const hoy = new Date();
+    sm.value = hoy.getMonth() + 1;
+    sa.value = hoy.getFullYear();
+    sh.value = hoy.getFullYear();
+}
+function actualizarSugerenciasDescripciones(l) { document.getElementById('sugerenciasDescripciones').innerHTML=l.map(d=>`<option value="${d}">`).join(''); }
+function filtrarTablaDetalle(i, t) {
+    const esDetallePaginado = t.includes('Detalle');
+    const v = document.getElementById(i).value.toLowerCase();
+    const rs = document.querySelectorAll(`#${t} tbody tr`);
+    let tot=0;
+    rs.forEach(r => {
+        if(r.textContent.toLowerCase().includes(v)) { 
+            r.style.display=''; 
+            if (!esDetallePaginado) tot+=parsearValor(r.cells[2].textContent.replace(config.moneda,'')); 
+        }
+        else r.style.display='none';
+    });
+    if (!esDetallePaginado) {
+        document.querySelector(`#${t} tfoot .gasto-valor`).textContent = formatearMoneda(tot);
+    }
+}
+
+async function compartirBackupJSON() {
+    const txt = JSON.stringify({gastos_v2:gastos, config_v2:config}, null, 2);
+    const f = new File([new Blob([txt],{type:'text/plain'})], `Backup_${new Date().toISOString().split('T')[0]}.txt`, {type:'text/plain'});
+    descargar(f);
+    if(navigator.canShare && navigator.canShare({files:[f]})) {
+        try {
+            setTimeout(async () => {
+                await navigator.share({files:[f], title:'Backup Control Gastos', text: 'Backup de mis gastos'});
+            }, 500);
+        } catch(e) { console.log('No compartido'); }
+    }
+}
+function descargar(f){const a=document.createElement('a'); a.href=URL.createObjectURL(f); a.download=f.name; a.click();}
+function exportarReporteCSV(t) { compartirBackupJSON(); } 
+
+// Punto 2: Importar con feedback visual sin alert
+function importarDatos(e) {
+    const f = e.target.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = (ev) => {
+        try {
+            const d = JSON.parse(ev.target.result);
+            if(d.gastos_v2) { 
+                localStorage.setItem('gastos_v2', JSON.stringify(d.gastos_v2)); 
+                localStorage.setItem('config_v2', JSON.stringify(d.config_v2)); 
+                
+                // Feedback visual en botón
+                const btn = document.getElementById('btnImportarTrigger');
+                const originalText = btn.innerHTML;
+                const originalClass = btn.className;
+                
+                btn.className = 'btn btn-success';
+                btn.innerHTML = `<i class="fas fa-check"></i> ${TRADUCTIONS[config.idioma].btnCargado}`;
+                
+                setTimeout(() => {
+                   location.reload();
+                }, 1500);
+            }
+        } catch { 
+            mostrarToast(TRADUCTIONS[config.idioma].alertImportErrorJSON, 'error');
+        }
+    };
+    r.readAsText(f);
+}
+function confirmarLimpiarTodosLosDatos(){ mostrarModalConfirmacion(TRADUCTIONS[config.idioma].confirmDeleteAll, ()=>{localStorage.clear(); location.reload();}); }
+
+// Punto 1: Gráficos - Letra pequeña y Ocultar si no cabe (<4%)
+function actualizarGraficoCategorias(l, c, i) {
+    const ctx=document.getElementById(c).getContext('2d');
+    const d={}; let totalChart = 0;
+    l.forEach(g=> {
+        d[g.categoria]=(d[g.categoria]||0)+g.valor;
+        totalChart += g.valor;
+    });
+    
+    if(window[i]) window[i].destroy();
+    
+    window[i] = new Chart(ctx, { 
+        type:'doughnut', 
+        data:{
+            labels:Object.keys(d), 
+            datasets:[{
+                data:Object.values(d), 
+                backgroundColor:['#007bff','#28a745','#dc3545','#ffc107','#fd7e14','#6f42c1'], 
+                borderWidth:1
+            }]
+        }, 
+        options:{
+            responsive:true, 
+            maintainAspectRatio:false, 
+            plugins:{
+                legend:{display:false},
+                datalabels: {
+                    color: 'white',
+                    font: { weight: 'bold', size: 10 }, // Letra más pequeña
+                    display: function(context) {
+                        // Ocultar si es menor al 4% del total
+                        if (totalChart === 0) return false;
+                        let value = context.dataset.data[context.dataIndex];
+                        return (value / totalChart) > 0.04;
+                    },
+                    formatter: (value, ctx) => {
+                        if(totalChart === 0) return "0%";
+                        let percentage = (value * 100 / totalChart).toFixed(2) + "%";
+                        return percentage;
+                    }
+                }
+            }
+        } 
+    });
+    if(i==='chartMensualInstance') chartMensualInstance=window[i]; else chartHistoricoInstance=window[i];
+}
+
+function actualizarGraficoGastosPorMes(l) {
+    const ctx=document.getElementById('chartHistoricoMesesCanvas').getContext('2d');
+    const md=Array(12).fill(0); 
+    l.forEach(g=>md[parseInt(g.fecha.split('-')[1])-1]+=g.valor);
+    
+    const tituloGrafico = filtroCategoriaHistorico === 'TODOS' 
+        ? (config.idioma === 'es' ? 'Gastos Mensuales (Global)' : 'Monthly Expenses (Global)')
+        : `${config.idioma === 'es' ? 'Gastos' : 'Expenses'}: ${filtroCategoriaHistorico}`;
+
+    if(chartHistoricoMesesInstance) chartHistoricoMesesInstance.destroy();
+    
+    chartHistoricoMesesInstance = new Chart(ctx, {
+        type:'bar',
+        data:{
+            labels:MONTH_NAMES_FULL[config.idioma].map(m=>m.substr(0,3)), 
+            datasets:[{data:md, backgroundColor:'#007bff'}]
+        },
+        options:{
+            responsive:true, 
+            maintainAspectRatio:false, 
+            plugins:{
+                legend:{display:false},
+                datalabels: { display: false },
+                title: {
+                    display: true,
+                    text: tituloGrafico,
+                    font: { size: 14 }
+                }
+            }
+        }
+    });
+}
+
+</script>
+</html>

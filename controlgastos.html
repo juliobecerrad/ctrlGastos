@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title id="appTitle">Control de Gastos</title> 
+    <title id="appTitle">Control Gastos v3.3</title> 
     <meta name="theme-color" content="#1E3A8A">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -13,27 +13,16 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     
     <style>
-        /* --- VARIABLES: VIBRANT PROFESSIONAL --- */
+        /* --- VARIABLES --- */
         :root {
             --primary-gradient: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
-            --primary-color: #2563EB;
-            --primary-dark: #1E3A8A;
-            --success-color: #10B981;
-            --danger-color: #EF4444;
-            --secondary-color: #64748B;
-            --bg-body: #F1F5F9;
-            --bg-card: #FFFFFF;
-            --text-main: #1E293B;
-            --text-light: #FFFFFF;
-            --border-color: #E2E8F0;
-            --table-header-bg: #F8FAFC;
-            --table-header-text: #475569;
-            --table-zebra-bg: #F8FAFC;
-            --color-cash: #10B981;
-            --color-card: #2563EB;
-            --color-transfer: #F59E0B;
-            --nav-bg: #FFFFFF;
-            --nav-active: #2563EB;
+            --primary-color: #2563EB; --primary-dark: #1E3A8A;
+            --success-color: #10B981; --danger-color: #EF4444;
+            --secondary-color: #64748B; --bg-body: #F1F5F9; --bg-card: #FFFFFF;
+            --text-main: #1E293B; --text-light: #FFFFFF; --border-color: #E2E8F0;
+            --table-header-bg: #F8FAFC; --table-header-text: #475569; --table-zebra-bg: #F8FAFC;
+            --color-cash: #10B981; --color-card: #2563EB; --color-transfer: #F59E0B;
+            --nav-bg: #FFFFFF; --nav-active: #2563EB;
             --safe-area-bottom: env(safe-area-inset-bottom, 0px);
             --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
         }
@@ -47,19 +36,18 @@
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-            margin: 0; padding: 0;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif; margin: 0; padding: 0;
             background-color: var(--bg-body); color: var(--text-main);
             max-width: 450px; margin: 0 auto; min-height: 100vh;
             padding-bottom: calc(65px + var(--safe-area-bottom)); 
-            overscroll-behavior-y: none;
+            overscroll-behavior-y: none; -webkit-user-select: none; user-select: none;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .shake-error { animation: shake 0.4s ease-in-out; border-color: var(--danger-color) !important; }
 
+        /* UI GLOBAL */
         h2, h3 { color: var(--text-main); text-align: center; }
         h2 { font-size: 1.3em; margin-top: 20px; color: var(--primary-color); font-weight: 700; }
         
@@ -68,14 +56,86 @@
             background: var(--primary-gradient); color: white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 50;
         }
-        #appLogo { font-size: 1em; font-weight: bold; color: white; display: flex; align-items: center; gap: 8px; }
+        #appLogo { font-size: 1em; font-weight: bold; display: flex; align-items: center; gap: 8px; }
         
         .pantalla { display: none; padding: 15px; }
         .pantalla.activa { display: block; animation: fadeIn 0.3s ease-out forwards; }
 
+        /* CALCULADORA (VISTA GASTO) */
+        .calc-display {
+            background: var(--bg-card); padding: 15px; border-radius: 16px;
+            text-align: center; margin-bottom: 15px; box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            min-height: 80px; display: flex; flex-direction: column; justify-content: center;
+        }
+        .calc-amount { font-size: 2.5em; font-weight: bold; color: var(--primary-color); margin: 5px 0; line-height: 1; }
+        .calc-category-label { font-size: 0.9em; color: var(--secondary-color); text-transform: uppercase; letter-spacing: 1px; min-height: 1.2em; font-weight: bold; }
+        
+        .calc-meta-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+        .calc-meta-row input {
+            border: 1px solid var(--border-color); background: var(--bg-card);
+            padding: 12px; border-radius: 8px; color: var(--text-main); font-size: 0.95em;
+        }
+        #calcDesc { flex-grow: 1; }
+        
+        .date-btn {
+            background: var(--bg-card); border: 1px solid var(--border-color); padding: 12px; 
+            border-radius: 8px; cursor:pointer; display: flex; align-items: center; gap: 5px;
+        }
+        
+        .btn-mini-save {
+            background: var(--success-color); color: white; border: none; border-radius: 8px;
+            width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 1.2em; box-shadow: var(--shadow-sm);
+        }
+
+        .cat-grid-container {
+            display: grid; grid-template-rows: repeat(2, 1fr); grid-auto-flow: column;             
+            grid-auto-columns: minmax(90px, auto); gap: 6px; overflow-x: auto;
+            padding-bottom: 5px; margin-bottom: 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+            transition: all 0.4s ease; max-height: 100px; border: 1px solid transparent; border-radius: 12px;
+        }
+        .cat-grid-container.expanded { grid-template-rows: repeat(4, 1fr); max-height: 200px; padding: 10px; background: var(--bg-body); }
+        .cat-grid-container::-webkit-scrollbar { display: none; }
+        
+        .cat-pill {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            padding: 8px 5px; border-radius: 8px; font-size: 0.8em;
+            cursor: pointer; color: var(--text-main); transition: all 0.3s;
+            text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .cat-pill.selected {
+            background: var(--primary-color); color: white; border-color: var(--primary-color); font-weight: bold;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3); transform: scale(1.02);
+        }
+
+        .pay-pills { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
+        .pay-pill {
+            padding: 8px 15px; border-radius: 8px; font-size: 0.9em; cursor: pointer;
+            border: 1px solid var(--border-color); background: var(--bg-card); color: var(--secondary-color);
+        }
+        .pay-pill.selected { background: #EFF6FF; border-color: var(--primary-color); color: var(--primary-color); font-weight: bold; }
+
+        .numpad-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .num-btn {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 10px 0; font-size: 1.3em; font-weight: 600;
+            color: var(--text-main); cursor: pointer; box-shadow: 0 2px 0 rgba(0,0,0,0.05); transition: background 0.1s;
+        }
+        .num-btn:active { transform: translateY(2px); background: #F1F5F9; }
+        .num-btn.save-btn {
+            grid-column: span 1; grid-row: span 2; background: var(--success-color); color: white; border: none;
+            display: flex; align-items: center; justify-content: center; font-size: 1.5em;
+        }
+        .num-btn.del-btn { color: var(--danger-color); }
+        
+        .mini-history { margin-top: 20px; padding-top: 10px; border-top: 1px solid var(--border-color); }
+        .mini-history h3 { font-size: 0.95em; color: var(--secondary-color); margin-bottom: 8px; text-align: left; }
+
+        /* --- ESTILOS CLÁSICOS (VISTAS MENSUAL/ANUAL) --- */
         .form-group { margin-bottom: 10px; }
         label { display: block; margin-bottom: 3px; font-weight: 600; font-size: 0.9em; color: var(--secondary-color); }
-        
         input[type="date"], input[type="text"], input[type="number"], select {
             width: 100%; padding: 10px; border: 1px solid var(--border-color);
             border-radius: 8px; box-sizing: border-box; font-size: 1em;
@@ -95,8 +155,7 @@
         
         button.btn-accion-tabla { 
             width: auto; padding: 5px 10px; font-size: 0.9em; margin: 0 2px; border-radius: 6px;
-            background-color: transparent !important; 
-            border: 1px solid; 
+            background-color: transparent !important; border: 1px solid; 
         }
         .btn-accion-editar { color: var(--primary-color); border-color: var(--primary-color); }
         .btn-accion-borrar { color: var(--danger-color); border-color: var(--danger-color); }
@@ -112,9 +171,7 @@
         }
         .tabla-gastos td { border-bottom: 1px solid var(--border-color); font-size: 0.95em; } 
         .tabla-gastos .gasto-categoria-subtexto { font-size: 0.75em; color: var(--secondary-color); margin-top: 2px; }
-
         .tabla-gastos tbody tr:nth-child(even) { background-color: var(--table-zebra-bg); }
-        .tabla-gastos tr:hover:not(tfoot tr) { background-color: rgba(37, 99, 235, 0.05); cursor: pointer; }
         .tabla-gastos .gasto-valor { text-align: right; white-space: nowrap; font-weight: 600; }
         .tabla-gastos tfoot tr { font-weight: bold; background-color: var(--table-header-bg); border-top: 2px solid var(--border-color); }
         .tabla-gastos tfoot td { color: var(--primary-dark); border-bottom: none; }
@@ -122,6 +179,10 @@
 
         .col-porcentaje { text-align: right !important; }
 
+        .payment-filters-grid { display: flex; flex-wrap: wrap; }
+        .payment-filters-grid label[for*="Total"] { flex-basis: 100%; margin-bottom: 5px; }
+        .payment-filters-grid label:not([for*="Total"]) { flex-grow: 1; flex-basis: 0; }
+        
         .payment-type-group { display: flex; justify-content: space-around; margin-bottom: 5px; gap: 5px; }
         .payment-type-group input { display: none; }
         .payment-type-group label {
@@ -137,10 +198,6 @@
         label[for*="Contado"] i { color: var(--color-cash); }
         label[for*="Tarjeta"] i { color: var(--color-card); }
         label[for*="Transf"] i { color: var(--color-transfer); }
-
-        .payment-filters-grid { display: flex; flex-wrap: wrap; }
-        .payment-filters-grid label[for*="Total"] { flex-basis: 100%; margin-bottom: 5px; }
-        .payment-filters-grid label:not([for*="Total"]) { flex-grow: 1; flex-basis: 0; }
         .pago-sum { display: block; font-weight: bold; font-size: 1em; margin-left: 5px; }
 
         .nav-tabs {
@@ -193,55 +250,67 @@
 </head>
 <body>
     <div class="header">
-        <span id="appLogo"><i class="fas fa-wallet"></i> <span data-i18n="appTitle">Control de Gastos</span></span>
+        <span id="appLogo"><i class="fas fa-wallet"></i> <span data-i18n="appTitle">Control v3.3</span></span>
     </div>
 
+    <!-- VISTA GASTO (CALCULADORA PANCHI) -->
     <div id="gasto" class="pantalla activa">
-        <div id="formulario-gasto">
-            <h2 data-i18n="titleIngresoGasto">Ingreso de Gasto</h2>
-            <div class="form-group">
-                <label data-i18n="lblFecha">Fecha:</label>
-                <input type="date" id="gastoFecha" required>
+        <div class="calculator-container">
+            <div class="calc-display" id="displayContainer">
+                <div class="calc-category-label" id="displayCatLabel"></div> 
+                <div class="calc-amount" id="displayAmount">$ 0</div>
             </div>
-            <div class="form-group">
-                <label data-i18n="lblCategoria">Categoría:</label>
-                <select id="gastoCategoria" required></select>
-            </div>
-            <div class="form-group">
-                <label data-i18n="lblDescripcion">Descripción:</label>
-                <input type="text" id="gastoDescripcion" list="sugerenciasDescripciones" data-i18n-ph="phEjCafe" placeholder="Ej: Café" required>
+            <div class="calc-meta-row">
+                <div class="date-btn" onclick="abrirSelectorFecha()">
+                    <i class="fas fa-calendar-alt" style="color: var(--primary-color);"></i> <span id="dateBtnLabel" style="font-weight: 600;">Hoy</span>
+                </div>
+                <input type="date" id="calcDate" onchange="actualizarLabelFecha()" style="position:absolute; visibility:hidden;">
+                
+                <input type="text" id="calcDesc" placeholder="Descripción" list="sugerenciasDescripciones" onkeyup="detectarCategoriaInteligente()">
                 <datalist id="sugerenciasDescripciones"></datalist>
+                
+                <!-- Botón Guardar Mini -->
+                <button class="btn-mini-save" onclick="guardarGastoCalc()"><i class="fas fa-check"></i></button>
             </div>
-            <div class="form-group">
-                <label data-i18n="lblValor">Valor:</label>
-                <input type="text" id="gastoValor" placeholder="0.00" inputmode="decimal" required>
+            
+            <div class="pay-pills">
+                <div class="pay-pill selected" onclick="setPayment('Contado')" id="pillContado">Contado</div>
+                <div class="pay-pill" onclick="setPayment('Tarjeta')" id="pillTarjeta">Tarjeta</div>
+                <div class="pay-pill" onclick="setPayment('Transferencia')" id="pillTransf">Transf.</div>
             </div>
-            <label data-i18n="lblTipoPago">Tipo de Pago:</label>
-            <div class="payment-type-group">
-                <input type="radio" id="pagoContado" name="tipoPago" value="Contado" checked>
-                <label for="pagoContado"><i class="fas fa-coins"></i> <span data-i18n="lblContado">Contado</span></label>
-                <input type="radio" id="pagoTarjeta" name="tipoPago" value="Tarjeta">
-                <label for="pagoTarjeta"><i class="far fa-credit-card"></i> <span data-i18n="lblTarjeta">Tarjeta</span></label>
-                <input type="radio" id="pagoTransferencia" name="tipoPago" value="Transferencia">
-                <label for="pagoTransferencia"><i class="fas fa-mobile-alt"></i> <span data-i18n="lblTransf">Transf.</span></label>
+            <div class="cat-grid-container" id="catScroller"></div>
+            <div class="numpad-grid">
+                <button class="num-btn" onclick="appendNum('1')">1</button>
+                <button class="num-btn" onclick="appendNum('2')">2</button>
+                <button class="num-btn" onclick="appendNum('3')">3</button>
+                <button class="num-btn save-btn" onclick="guardarGastoCalc()"><i class="fas fa-check"></i></button>
+                <button class="num-btn" onclick="appendNum('4')">4</button>
+                <button class="num-btn" onclick="appendNum('5')">5</button>
+                <button class="num-btn" onclick="appendNum('6')">6</button>
+                <button class="num-btn" onclick="appendNum('7')">7</button>
+                <button class="num-btn" onclick="appendNum('8')">8</button>
+                <button class="num-btn" onclick="appendNum('9')">9</button>
+                <button class="num-btn" onclick="appendNum('.')">.</button>
+                <button class="num-btn" onclick="appendNum('0')">0</button>
+                <button class="num-btn del-btn" onclick="delNum()"><i class="fas fa-backspace"></i></button>
             </div>
-            <button class="btn btn-primary" id="btnAddGasto" onclick="agregarGasto()" data-i18n="btnAddGasto">➕ Añadir Gasto</button>
         </div>
-        
-        <h2 data-i18n="titleGastosMes">Gastos del Mes</h2>
-        <div style="font-size:0.8em; text-align:center; color:gray; margin-bottom:5px;" data-i18n="lblClicEditar">Clic para editar</div>
-        <table id="tablaUltimosGastos" class="tabla-gastos">
-            <thead><tr><th data-i18n="colFecha">Fecha</th><th data-i18n="colDesc">Descripción</th><th style="text-align: right;" data-i18n="colValor">Valor</th></tr></thead>
-            <tbody></tbody>
-            <tfoot><tr><td colspan="2" data-i18n="lblTotal">TOTAL</td><td id="totalUltimosGastos" class="gasto-valor"></td></tr></tfoot>
-        </table>
-        <div class="pagination-controls">
-            <button class="btn btn-secondary" onclick="cambiarPaginaPrincipal(-1)">Ant</button>
-            <span id="pageInfoPrincipal">Pág 1</span>
-            <button class="btn btn-secondary" onclick="cambiarPaginaPrincipal(1)">Sig</button>
+        <div class="mini-history">
+            <h3 data-i18n="titleGastosMes">Recientes del Mes</h3>
+            <table id="tablaUltimosGastos" class="tabla-gastos">
+                <thead><tr><th>Fecha</th><th>Descripción</th><th style="text-align: right;">Valor</th></tr></thead>
+                <tbody></tbody>
+                <tfoot><tr><td colspan="2">TOTAL</td><td id="totalUltimosGastos" class="gasto-valor"></td></tr></tfoot>
+            </table>
+            <div class="pagination-controls">
+                <button class="btn btn-secondary" onclick="cambiarPaginaPrincipal(-1)">Ant</button>
+                <span id="pageInfoPrincipal">Pág 1</span>
+                <button class="btn btn-secondary" onclick="cambiarPaginaPrincipal(1)">Sig</button>
+            </div>
         </div>
     </div>
     
+    <!-- VISTA MENSUAL -->
     <div id="mensual" class="pantalla">
         <h2 data-i18n="titleResumenMensual">Resumen Mensual</h2>
         <div class="filtro-container-inline">
@@ -249,6 +318,7 @@
             <select id="filtroAnioMensual" onchange="actualizarResumenMensual()"></select>
         </div>
         
+        <!-- Filtros con IDs corregidos para totales -->
         <div class="payment-type-group payment-filters-grid">
             <input type="radio" id="filtroPagoTotalMensual" name="filtroTipoPagoMensual" value="TODOS" checked>
             <label for="filtroPagoTotalMensual"><span data-i18n="lblTotal">Total</span><span class="pago-sum" id="sum-total-mensual">$0</span></label>
@@ -267,9 +337,9 @@
             <tfoot><tr><td data-i18n="lblTotal">TOTAL</td><td></td><td id="totalResumenMensual" class="gasto-valor"></td></tr></tfoot>
         </table>
         
-        <div id="detalleMensual">
-            <h3><span data-i18n="titleDetalle">Detalle</span>: <span id="detalleCategoriaMensual" style="color: var(--primary-color);"></span></h3>
-            <input type="text" id="buscarDetalleMensual" class="input-buscar" data-i18n-ph="phBuscar" placeholder="Buscar..." onkeyup="filtrarTablaDetalle('buscarDetalleMensual', 'tablaDetalleMensual')">
+        <div id="detalleMensual" style="display:none;">
+            <h3>Detalle: <span id="detalleCategoriaMensual" style="color: var(--primary-color);"></span></h3>
+            <input type="text" id="buscarDetalleMensual" class="input-buscar" data-i18n-ph="phBuscar" placeholder="Buscar..." onkeyup="filtrarTablaDetalle('buscarDetalleMensual', 'tablaDetalleMensual')" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid var(--border-color); border-radius:8px;">
             <table id="tablaDetalleMensual" class="tabla-gastos">
                 <thead><tr><th data-i18n="colFecha">Fecha</th><th data-i18n="colDesc">Descripción</th><th data-i18n="colValor">Valor</th></tr></thead>
                 <tbody></tbody>
@@ -286,6 +356,7 @@
         <button class="btn btn-secondary" id="btnExportMes" onclick="generarYCompartirCSV('mensual')" data-i18n="btnCsvMes">Exportar Mes</button> 
     </div>
 
+    <!-- VISTA HISTORICO -->
     <div id="historico" class="pantalla">
         <h2 data-i18n="titleResumenAnual">Resumen Anual</h2>
         <div class="filtro-container-inline">
@@ -310,9 +381,9 @@
             <tfoot><tr><td data-i18n="lblTotal">TOTAL</td><td></td><td id="totalResumenHistorico" class="gasto-valor"></td></tr></tfoot>
         </table>
         
-        <div id="detalleHistorico">
-            <h3><span data-i18n="titleDetalle">Detalle</span>: <span id="detalleCategoriaHistorico" style="color: var(--primary-color);"></span></h3>
-            <input type="text" id="buscarDetalleHistorico" class="input-buscar" data-i18n-ph="phBuscar" placeholder="Buscar..." onkeyup="filtrarTablaDetalle('buscarDetalleHistorico', 'tablaDetalleHistorico')">
+        <div id="detalleHistorico" style="display:none;">
+            <h3>Detalle: <span id="detalleCategoriaHistorico" style="color: var(--primary-color);"></span></h3>
+            <input type="text" id="buscarDetalleHistorico" class="input-buscar" data-i18n-ph="phBuscar" placeholder="Buscar..." onkeyup="filtrarTablaDetalle('buscarDetalleHistorico', 'tablaDetalleHistorico')" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid var(--border-color); border-radius:8px;">
             <table id="tablaDetalleHistorico" class="tabla-gastos">
                 <thead><tr><th data-i18n="colFecha">Fecha</th><th data-i18n="colDesc">Descripción</th><th data-i18n="colValor">Valor</th></tr></thead>
                 <tbody></tbody>
@@ -367,19 +438,15 @@
 
     <div id="modalEdicion" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="cerrarModal()">&times;</span>
             <h2 data-i18n="titleEditar">Editar</h2>
             <div class="form-group"><input type="date" id="modalFecha"></div>
             <div class="form-group"><select id="modalCategoria"></select></div>
             <div class="form-group"><input type="text" id="modalDescripcion"></div>
-            <div class="form-group"><input type="text" id="modalValor" inputmode="decimal"></div>
-            <div class="payment-type-group">
-                <input type="radio" id="modalPagoContado" name="modalTipoPago" value="Contado">
-                <label for="modalPagoContado"><i class="fas fa-coins"></i> <span data-i18n="lblContado">Contado</span></label>
-                <input type="radio" id="modalPagoTarjeta" name="modalTipoPago" value="Tarjeta">
-                <label for="modalPagoTarjeta"><i class="far fa-credit-card"></i> <span data-i18n="lblTarjeta">Tarjeta</span></label>
-                <input type="radio" id="modalPagoTransferencia" name="modalTipoPago" value="Transferencia">
-                <label for="modalPagoTransferencia"><i class="fas fa-mobile-alt"></i> <span data-i18n="lblTransf">Transf.</span></label>
+            <div class="form-group"><input type="text" id="modalValor"></div>
+            <div class="payment-type-group-classic">
+                <input type="radio" name="modalTipoPago" value="Contado" id="mpC"><label for="mpC">Efectivo</label>
+                <input type="radio" name="modalTipoPago" value="Tarjeta" id="mpT"><label for="mpT">Tarjeta</label>
+                <input type="radio" name="modalTipoPago" value="Transferencia" id="mpTr"><label for="mpTr">Transf.</label>
             </div>
             <div class="modal-botones-row">
                 <button class="btn btn-success" onclick="guardarEdicionDesdeModal()" data-i18n="btnGuardar">Guardar</button>
@@ -391,7 +458,6 @@
     
     <div id="modalEdicionCategoria" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="cerrarModalCategoria()">&times;</span>
             <h2 data-i18n="titleRenombrar">Renombrar</h2>
             <div class="form-group"><input type="text" id="modalCategoriaNombre"></div>
             <div class="modal-botones-row">
@@ -424,114 +490,62 @@
 </body>
 
 <script>
+const MONTH_NAMES_FULL = { es: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'], en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] };
+const TRADUCTIONS = { es: { alertMissing: "Faltan datos.", alertGuardado: "¡Guardado!", alertNoExport: "Sin datos.", btnCargado: "¡Cargado!", errVal: "Ingresa monto", errCat: "Elige categoría" }, en: { alertMissing: "Missing data.", alertGuardado: "Saved!", alertNoExport: "No data.", btnCargado: "Loaded!", errVal: "Enter amount", errCat: "Pick category" } };
 
-const MONTH_NAMES_FULL = {
-    es: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
-    en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-};
-
-const TRADUCTIONS = {
-    es: {
-        alertMissing: "Rellena todos los campos.", alertGuardado: "¡Guardado!",
-        confirmDelete: "¿Eliminar?", confirmDeleteAll: "¿BORRAR TODO?",
-        alertNoExport: "Sin datos.", alertCSVEmpty: "Vacío.",
-        alertImportSuccess: (c) => `Importados ${c}.`, alertImportSuccessJSON: "¡Datos cargados correctamente!",
-        alertImportErrorJSON: "Archivo mal.", alertCatNombreExiste: (n) => `"${n}" existe.`,
-        alertCatNoSePuedeBorrar: (n) => `"${n}" tiene gastos.`, modalConfirmDeleteCat: (n) => `¿Borrar "${n}"?`,
-        toastGastoEliminado: "Eliminado.", toastCategoriaGuardada: "Guardada.", toastCategoriaEliminada: "Eliminada.",
-        
-        appTitle: "Control de Gastos", titleIngresoGasto: "Ingreso de Gasto", lblFecha: "Fecha:", lblCategoria: "Categoría:",
-        lblDescripcion: "Descripción:", phEjCafe: "Ej: Café", lblValor: "Valor:", lblTipoPago: "Tipo de Pago:",
-        lblContado: "Contado", lblTarjeta: "Tarjeta", lblTransf: "Transf.", btnAddGasto: "➕ Añadir Gasto",
-        titleGastosMes: "Gastos del Mes", lblClicEditar: "Clic para editar", colFecha: "Fecha", colDesc: "Descripción",
-        colValor: "Valor", lblTotal: "TOTAL", titleResumenMensual: "Resumen Mensual", titleTotalCategoria: "Total por Categoría",
-        colTotal: "Total", colCategoria: "Categoría", titleDetalle: "Detalle", phBuscar: "Buscar...", lblTotalGeneral: "TOTAL GENERAL",
-        btnAnterior: "Anterior", btnSiguiente: "Siguiente", btnCsvMes: "Exportar Mes", titleResumenAnual: "Resumen Anual",
-        titleTotalCatAnio: "Total Categorías (Año)", btnCsvAnio: "Exportar Año", menuConfig: "Configuración",
-        lblMoneda: "Moneda:", lblIdioma: "Idioma:", titleCategorias: "Categorías", colNombre: "Nombre", colAccion: "Acción",
-        phNueva: "Nueva Categoría", titleDatos: "Datos", btnBackup: "⬆️ Backup (Guardar y Compartir)", btnImportar: "⬇️ Importar",
-        btnBorrarTodo: "⚠️ Borrar Todo", titleEditar: "Editar", btnGuardar: "Guardar", btnBorrar: "Borrar", btnCancelar: "Cancelar",
-        titleRenombrar: "Renombrar", titleConfirmar: "Confirmar", btnSi: "Sí", btnNo: "No",
-        menuGasto: "Gasto", menuMes: "Mes", menuAnio: "Año", 
-        btnCargado: "¡Cargado!" 
-    },
-    en: {
-        alertMissing: "Missing fields.", alertGuardado: "Saved!", confirmDelete: "Delete?",
-        confirmDeleteAll: "DELETE ALL?", alertNoExport: "No data.", alertCSVEmpty: "Empty.",
-        alertImportSuccess: (c) => `Imported ${c}.`, alertImportSuccessJSON: "Data loaded successfully!",
-        alertImportErrorJSON: "File error.", alertCatNombreExiste: (n) => `"${n}" exists.`,
-        alertCatNoSePuedeBorrar: (n) => `"${n}" used.`, modalConfirmDeleteCat: (n) => `Delete "${n}"?`,
-        toastGastoEliminado: "Deleted.", toastCategoriaGuardada: "Saved.", toastCategoriaEliminada: "Deleted.",
-        
-        appTitle: "Expense Tracker", titleIngresoGasto: "Add Expense", lblFecha: "Date:", lblCategoria: "Category:",
-        lblDescripcion: "Description:", phEjCafe: "Ex: Coffee", lblValor: "Value:", lblTipoPago: "Payment Type:",
-        lblContado: "Cash", lblTarjeta: "Card", lblTransf: "Transfer", btnAddGasto: "➕ Add Expense",
-        titleGastosMes: "Monthly Expenses", lblClicEditar: "Click to edit", colFecha: "Date", colDesc: "Description",
-        colValor: "Value", lblTotal: "TOTAL", titleResumenMensual: "Monthly Summary", titleTotalCategoria: "Total by Category",
-        colTotal: "Total", colCategoria: "Category", titleDetalle: "Detail", phBuscar: "Search...", lblTotalGeneral: "GRAND TOTAL",
-        btnAnterior: "Prev", btnSiguiente: "Next", btnCsvMes: "Export Month", titleResumenAnual: "Annual Summary",
-        titleTotalCatAnio: "Total Categories (Year)", btnCsvAnio: "Export Year", menuConfig: "Configuration",
-        lblMoneda: "Currency:", lblIdioma: "Language:", titleCategorias: "Categories", colNombre: "Name", colAccion: "Action",
-        phNueva: "New Category", titleDatos: "Data", btnBackup: "⬆️ Backup (Save & Share)", btnImportar: "⬇️ Import",
-        btnBorrarTodo: "⚠️ Delete All", titleEditar: "Edit", btnGuardar: "Save", btnBorrar: "Delete", btnCancelar: "Cancel",
-        titleRenombrar: "Rename", titleConfirmar: "Confirm", btnSi: "Yes", btnNo: "No",
-        menuGasto: "Expense", menuMes: "Month", menuAnio: "Year",
-        btnCargado: "Loaded!"
-    }
-};
-
-let gastos = [];
-let config = {};
-let descripcionesUsadas = [];
-let gastoEditandoId = null;
-let categoriaEditandoNombreAntiguo = null;
-let filtroPagoMensual = 'TODOS';
-let filtroPagoHistorico = 'TODOS';
-let filtroCategoriaHistorico = 'TODOS';
-let chartMensualInstance = null;
-let chartHistoricoInstance = null;
-let chartHistoricoMesesInstance = null;
-let confirmCallback = null;
-let toastTimeout = null;
-
-const ITEMS_PER_PAGE = 25;
-let paginaActual = 1;
-let listaDetalleActual = [];
-let paginaActualGastosMes = 1; 
+let gastos = []; let config = {}; let gastoEditandoId = null; let categoriaEditandoNombreAntiguo = null;
+let confirmCallback = null; let toastTimeout = null;
+let chartMensualInstance = null; let chartHistoricoInstance = null; let chartHistoricoMesesInstance = null;
+let filtroCategoriaHistorico = 'TODOS'; const ITEMS_PER_PAGE = 25; let paginaActual = 1; let listaDetalleActual = []; let paginaActualGastosMes = 1;
+let calcInput = "0"; let calcCat = ""; let calcPay = "Contado";
 
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels); 
     cargarDatos();
     inicializarUI();
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+    
+    document.addEventListener('keydown', (e) => {
+        if (document.activeElement.tagName === 'INPUT') {
+            if (e.key === 'Enter') guardarGastoCalc(); 
+            return;
+        }
+        if (!isNaN(e.key) && e.key !== ' ') appendNum(e.key);
+        if (e.key === '.' || e.key === ',') appendNum('.');
+        if (e.key === 'Backspace') delNum();
+        if (e.key === 'Enter') guardarGastoCalc();
+        if (e.key === 'Escape') cerrarModal();
+    });
 });
 
-function sanitizar(str) {
-    if (!str) return '';
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-    return str.replace(/[&<>"']/g, (m) => map[m]);
-}
+function sanitizar(str) { return str ? str.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])) : ''; }
 
 function cargarDatos() {
-    cargarConfig();
+    const def = { moneda: '$', idioma: 'es', categorias: ['Comida', 'Transporte', 'Hogar', 'Salud', 'Ocio', 'Otros'] };
+    const loaded = JSON.parse(localStorage.getItem('config_v2'));
+    config = loaded ? { ...def, ...loaded } : def;
+    if(!Array.isArray(config.categorias)) config.categorias = def.categorias;
     gastos = JSON.parse(localStorage.getItem('gastos_v2')) || [];
     gastos.forEach(g => { if (!g.tipoPago) g.tipoPago = 'Contado'; });
-    gastos.sort(sortData);
-    descripcionesUsadas = [...new Set(gastos.map(g => g.descripcion))];
+    gastos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha) || b.id - a.id);
+
+    if(document.getElementById('configMoneda')) document.getElementById('configMoneda').value = config.moneda;
+    if(document.getElementById('configIdioma')) document.getElementById('configIdioma').value = config.idioma;
     
-    document.getElementById('configMoneda').value = config.moneda;
-    document.getElementById('configIdioma').value = config.idioma;
-    document.getElementById('gastoFecha').value = new Date().toISOString().split('T')[0];
+    if(document.getElementById('calcDate')) {
+        document.getElementById('calcDate').value = new Date().toISOString().split('T')[0];
+        actualizarLabelFecha();
+        determinarPagoMasUsado(); 
+        actualizarSugerenciasDescripciones( [...new Set(gastos.map(g => g.descripcion))] ); 
+        actualizarCatScroller();
+        renderizarGastosDelMes();
+        actualizarDisplayCalc();
+    }
     
-    actualizarSelectCategorias();
+    actualizarSelectCategorias(); 
     renderizarTablaCategorias();
-    actualizarSugerenciasDescripciones(descripcionesUsadas);
-    inicializarSelectoresMesAnio(); 
+    inicializarSelectoresMesAnio();
     aplicarIdioma();
-    
-    renderizarGastosDelMes();
-    actualizarResumenMensual();
-    actualizarResumenHistorico();
 }
 
 function aplicarIdioma() {
@@ -545,31 +559,182 @@ function aplicarIdioma() {
         const key = el.getAttribute('data-i18n-ph');
         if(t[key]) el.placeholder = t[key];
     });
-    
     const sm = document.getElementById('filtroMes');
-    const valAnterior = sm.value; 
-    sm.innerHTML = '';
-    MONTH_NAMES_FULL[lang].forEach((m, i) => sm.add(new Option(m, i+1)));
-    if(valAnterior) sm.value = valAnterior;
+    if(sm) {
+        const valAnterior = sm.value; 
+        sm.innerHTML = '';
+        MONTH_NAMES_FULL[lang].forEach((m, i) => sm.add(new Option(m, i+1)));
+        if(valAnterior) sm.value = valAnterior;
+    }
+}
 
-    actualizarResumenMensual();
-    actualizarResumenHistorico();
+function determinePagoMasUsado() {
+    if (gastos.length === 0) return;
+    const counts = {};
+    gastos.forEach(g => { counts[g.tipoPago] = (counts[g.tipoPago] || 0) + 1; });
+    const winner = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, 'Contado');
+    setPayment(winner);
+}
+function determinarPagoMasUsado() { determinePagoMasUsado(); }
+
+// AI + UI EXPANSION
+function detectingCategoriaInteligente() {
+    const desc = document.getElementById('calcDesc').value.toLowerCase();
+    const catContainer = document.getElementById('catScroller');
+    
+    if (desc.length < 3) {
+        resetSeleccionCategoria();
+        return;
+    }
+
+    try {
+        const regex = new RegExp('\\b' + desc, 'i');
+        const matches = gastos.filter(g => regex.test(g.descripcion));
+        if (matches.length > 0) {
+            catContainer.classList.remove('expanded');
+            const catCounts = {};
+            matches.forEach(g => { catCounts[g.categoria] = (catCounts[g.categoria] || 0) + 1; });
+            const bestCat = Object.keys(catCounts).reduce((a, b) => catCounts[a] > catCounts[b] ? a : b);
+            if (bestCat !== calcCat) {
+                selectCatPill(bestCat);
+                actualizarCatScroller(bestCat); 
+            }
+        } else {
+            resetSeleccionCategoria();
+            catContainer.classList.add('expanded'); // Expandir UI
+        }
+    } catch(e) {}
+}
+function detectarCategoriaInteligente() { detectingCategoriaInteligente(); } 
+
+function resetSeleccionCategoria() {
+    calcCat = ""; 
+    actualizarCatScroller(null); 
+    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('selected'));
+    const label = document.getElementById('displayCatLabel');
+    label.textContent = ""; // Punto 1: Vacio por defecto
+    document.getElementById('catScroller').classList.remove('expanded');
+}
+
+function abrirSelectorFecha() { document.getElementById('calcDate').showPicker(); }
+function actualizarLabelFecha() {
+    const d = document.getElementById('calcDate').value;
+    const hoy = new Date().toISOString().split('T')[0];
+    document.getElementById('dateBtnLabel').textContent = (d === hoy) ? "Hoy" : d.split('-').reverse().slice(0,2).join('/');
+}
+
+function appendNum(num) {
+    if (calcInput === "0" && num !== ".") calcInput = num;
+    else if (num === "." && calcInput.includes(".")) return;
+    else if (calcInput.replace('.','').length >= 9) return;
+    else calcInput += num;
+    actualizarDisplayCalc();
+}
+function delNum() {
+    calcInput = calcInput.length > 1 ? calcInput.slice(0, -1) : "0";
+    actualizarDisplayCalc();
+}
+function setPayment(type) {
+    calcPay = type;
+    document.querySelectorAll('.pay-pill').forEach(p => p.classList.remove('selected'));
+    if(type==='Contado') document.getElementById('pillContado').classList.add('selected');
+    if(type==='Tarjeta') document.getElementById('pillTarjeta').classList.add('selected');
+    if(type==='Transferencia') document.getElementById('pillTransf').classList.add('selected');
+}
+function selectCatPill(cat) {
+    calcCat = cat;
+    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('selected'));
+    const pill = document.getElementById(`cat-${cat.replace(/\s+/g, '-')}`);
+    if(pill) pill.classList.add('selected');
+    const label = document.getElementById('displayCatLabel');
+    label.textContent = cat;
+    label.style.color = 'var(--primary-color)';
+    label.style.fontWeight = 'bold';
+    document.getElementById('catScroller').classList.remove('expanded');
+}
+function actualizarDisplayCalc() {
+    document.getElementById('displayAmount').textContent = `${config.moneda} ${parseFloat(calcInput).toLocaleString('es-EC', {minimumFractionDigits: 0, maximumFractionDigits: 2})}`;
+}
+
+function actualizarCatScroller(priorityCat = null) {
+    const container = document.getElementById('catScroller');
+    if(!container) return;
+    container.innerHTML = '';
+    const counts = {};
+    config.categorias.forEach(c => counts[c] = 0);
+    gastos.forEach(g => { if(counts[g.categoria] !== undefined) counts[g.categoria]++; });
+    let sortedCats = [...config.categorias].sort((a,b) => counts[b] - counts[a]);
+    if (priorityCat && sortedCats.includes(priorityCat)) {
+        sortedCats = sortedCats.filter(c => c !== priorityCat);
+        sortedCats.unshift(priorityCat);
+    }
+    sortedCats.forEach(c => {
+        const pill = document.createElement('div');
+        pill.className = 'cat-pill';
+        if(c === calcCat) pill.classList.add('selected');
+        pill.id = `cat-${c.replace(/\s+/g, '-')}`;
+        pill.textContent = c;
+        pill.onclick = () => selectCatPill(c);
+        container.appendChild(pill);
+    });
+}
+
+function guardarGastoCalc() {
+    const val = parseFloat(calcInput);
+    const displayContainer = document.getElementById('displayContainer');
+    const catContainer = document.getElementById('catScroller');
+
+    if (!val || val <= 0) {
+        displayContainer.classList.add('shake-error');
+        mostrarToast(TRADUCTIONS[config.idioma].errVal, 'error');
+        setTimeout(() => displayContainer.classList.remove('shake-error'), 500);
+        return;
+    }
+
+    if (!calcCat) {
+        catContainer.classList.add('shake-error');
+        catContainer.classList.add('expanded'); 
+        mostrarToast(TRADUCTIONS[config.idioma].errCat, 'error');
+        setTimeout(() => catContainer.classList.remove('shake-error'), 500);
+        return;
+    }
+
+    let desc = sanitizar(document.getElementById('calcDesc').value.trim());
+    if (!desc) desc = "Sin descripción";
+    const fecha = document.getElementById('calcDate').value;
+
+    gastos.push({ id: Date.now(), fecha, categoria: calcCat, descripcion: desc, valor: val, tipoPago: calcPay });
+    gastos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha) || b.id - a.id);
+    localStorage.setItem('gastos_v2', JSON.stringify(gastos));
+    
+    actualizarSugerenciasDescripciones( [...new Set(gastos.map(g => g.descripcion))] );
+    calcInput = "0";
+    document.getElementById('calcDesc').value = "";
+    resetSeleccionCategoria();
+    actualizarDisplayCalc();
+    renderizarGastosDelMes();
+    determinarPagoMasUsado();
+    mostrarToast(TRADUCTIONS[config.idioma].alertGuardado, 'success');
 }
 
 function inicializarUI() {
     mostrarPantalla('gasto', document.querySelector('.nav-tabs button.active'));
-    window.onclick = (e) => {
-        if (e.target == document.getElementById('modalEdicion')) cerrarModal();
-        if (e.target == document.getElementById('modalEdicionCategoria')) cerrarModalCategoria();
-        if (e.target == document.getElementById('modalConfirmacion')) cerrarModalConfirmacion();
-    };
     document.getElementById('inputImportar').addEventListener('change', importarDatos);
     document.querySelectorAll('input[name="filtroTipoPagoMensual"]').forEach(r => {
-        r.addEventListener('change', (e) => { filtroPagoMensual = e.target.value; actualizarResumenMensual(); });
+        r.addEventListener('change', () => {
+            actualizarResumenMensual();
+        });
     });
     document.querySelectorAll('input[name="filtroTipoPagoHistorico"]').forEach(r => {
-        r.addEventListener('change', (e) => { filtroPagoHistorico = e.target.value; actualizarResumenHistorico(true); });
+        r.addEventListener('change', () => {
+            actualizarResumenHistorico();
+        });
     });
+}
+function selectFilterPay(label) {
+    const inputId = label.getAttribute('for');
+    document.getElementById(inputId).checked = true;
+    document.getElementById(inputId).dispatchEvent(new Event('change'));
 }
 
 function mostrarPantalla(id, btn) {
@@ -578,14 +743,12 @@ function mostrarPantalla(id, btn) {
     document.getElementById(id).classList.add('activa');
     document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-
-    paginaActual = 1;
-    paginaActualGastosMes = 1;
-
-    if (id === 'gasto') renderizarGastosDelMes();
+    paginaActual = 1; paginaActualGastosMes = 1;
+    if (id === 'gasto') actualizarCatScroller();
     if (id === 'mensual') {
         document.getElementById('detalleMensual').style.display = 'none';
         document.getElementById('chartMensualContainer').style.display = 'block';
+        actualizarResumenMensual();
     }
     if (id === 'historico') {
         document.getElementById('detalleHistorico').style.display = 'none';
@@ -595,584 +758,267 @@ function mostrarPantalla(id, btn) {
     }
 }
 
+/* --- FUNCIONES DE APOYO --- */
 function renderizarGastosDelMes() {
-    const tbody = document.querySelector('#tablaUltimosGastos tbody');
-    tbody.innerHTML = '';
+    const tbody = document.querySelector('#tablaUltimosGastos tbody'); tbody.innerHTML = '';
     const hoy = new Date();
-    const listaCompleta = gastos.filter(g => {
-        const [y, m] = g.fecha.split('-');
-        return parseInt(m) === (hoy.getMonth() + 1) && parseInt(y) === hoy.getFullYear();
-    });
-
-    let total = 0;
-    listaCompleta.forEach(g => total += g.valor);
+    const lista = gastos.filter(g => { const [y, m] = g.fecha.split('-'); return parseInt(m) === (hoy.getMonth() + 1) && parseInt(y) === hoy.getFullYear(); });
+    let total = 0; lista.forEach(g => total += g.valor);
     document.getElementById('totalUltimosGastos').textContent = formatearMoneda(total);
-
-    const totalPaginas = Math.ceil(listaCompleta.length / ITEMS_PER_PAGE) || 1;
+    const totalPaginas = Math.ceil(lista.length / ITEMS_PER_PAGE) || 1;
     if(paginaActualGastosMes > totalPaginas) paginaActualGastosMes = totalPaginas;
-    if(paginaActualGastosMes < 1) paginaActualGastosMes = 1;
-
     const inicio = (paginaActualGastosMes - 1) * ITEMS_PER_PAGE;
-    const fin = inicio + ITEMS_PER_PAGE;
-    const listaPaginada = listaCompleta.slice(inicio, fin);
-
-    listaPaginada.forEach(g => {
-        const tr = document.createElement('tr');
-        tr.onclick = () => abrirModalEdicion(g.id);
+    const paginados = lista.slice(inicio, inicio + ITEMS_PER_PAGE);
+    paginados.forEach(g => {
+        const tr = document.createElement('tr'); tr.onclick = () => abrirModalEdicion(g.id);
         const [y, m, d] = g.fecha.split('-');
         tr.innerHTML = `<td>${d}/${m}</td><td>${g.descripcion}<div class="gasto-categoria-subtexto">${g.categoria}</div></td><td class="gasto-valor">${formatearMoneda(g.valor)}</td>`;
         tbody.appendChild(tr);
     });
-
-    const txtReg = config.idioma === 'es' ? 'reg' : 'rec';
-    document.getElementById('pageInfoPrincipal').textContent = `Pág ${paginaActualGastosMes}/${totalPaginas} (${listaCompleta.length} ${txtReg})`;
+    const txt = config.idioma === 'es' ? 'reg' : 'rec';
+    document.getElementById('pageInfoPrincipal').textContent = `Pág ${paginaActualGastosMes}/${totalPaginas} (${lista.length} ${txt})`;
 }
-
 function cambiarPaginaPrincipal(delta) {
     const hoy = new Date();
-    const lista = gastos.filter(g => {
-        const [y, m] = g.fecha.split('-');
-        return parseInt(m) === (hoy.getMonth() + 1) && parseInt(y) === hoy.getFullYear();
-    });
-    const totalPaginas = Math.ceil(lista.length / ITEMS_PER_PAGE);
-    const nueva = paginaActualGastosMes + delta;
-    if(nueva >= 1 && nueva <= totalPaginas) {
-        paginaActualGastosMes = nueva;
-        renderizarGastosDelMes();
-    }
+    const lista = gastos.filter(g => { const [y, m] = g.fecha.split('-'); return parseInt(m) === (hoy.getMonth() + 1) && parseInt(y) === hoy.getFullYear(); });
+    const max = Math.ceil(lista.length / ITEMS_PER_PAGE);
+    const n = paginaActualGastosMes + delta;
+    if(n>=1 && n<=max) { paginaActualGastosMes = n; renderizarGastosDelMes(); }
 }
-
 function cambiarPagina(delta) {
-    const totalPaginas = Math.ceil(listaDetalleActual.length / ITEMS_PER_PAGE);
-    const nuevaPagina = paginaActual + delta;
-    if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
-        paginaActual = nuevaPagina;
-        const esMensual = document.getElementById('mensual').classList.contains('activa');
-        const tablaId = esMensual ? 'tablaDetalleMensual' : 'tablaDetalleHistorico';
-        const labelInfoId = esMensual ? 'pageInfoMensual' : 'pageInfoHistorico';
-        const totalId = esMensual ? 'totalDetalleMensual' : 'totalDetalleHistorico';
-        renderizarTablaDetallePaginada(tablaId, totalId, labelInfoId);
+    const max = Math.ceil(listaDetalleActual.length/ITEMS_PER_PAGE)||1;
+    const n = paginaActual+delta;
+    if(n>=1 && n<=max) {
+        paginaActual=n; 
+        const id = document.getElementById('mensual').classList.contains('activa') ? 'Mensual' : 'Historico';
+        renderizarTablaDetallePaginada(`tablaDetalle${id}`,`totalDetalle${id}`,`pageInfo${id}`);
     }
 }
-
-function renderizarTablaDetallePaginada(tablaId, totalId, labelInfoId) {
-    const tbody = document.querySelector(`#${tablaId} tbody`);
-    tbody.innerHTML = '';
-    const inicio = (paginaActual - 1) * ITEMS_PER_PAGE;
-    const fin = inicio + ITEMS_PER_PAGE;
-    const gastosPagina = listaDetalleActual.slice(inicio, fin);
-    let totalGlobal = 0;
-    listaDetalleActual.forEach(g => totalGlobal += g.valor); 
-    gastosPagina.forEach(g => {
-        const tr = document.createElement('tr');
-        tr.onclick = () => abrirModalEdicion(g.id);
-        const [y, m, d] = g.fecha.split('-');
-        tr.innerHTML = `<td>${d}/${m}</td><td>${g.descripcion}</td><td class="gasto-valor">${formatearMoneda(g.valor)}</td>`;
+function renderizarTablaDetallePaginada(tId, totId, lblId) {
+    const tbody = document.querySelector(`#${tId} tbody`); tbody.innerHTML='';
+    let tot=0; listaDetalleActual.forEach(g=>tot+=g.valor); document.getElementById(totId).textContent=formatearMoneda(tot);
+    const max = Math.ceil(listaDetalleActual.length/ITEMS_PER_PAGE)||1;
+    const ini=(paginaActual-1)*ITEMS_PER_PAGE;
+    const slice = listaDetalleActual.slice(ini, ini+ITEMS_PER_PAGE);
+    slice.forEach(g=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${g.fecha.split('-')[2]}/${g.fecha.split('-')[1]}</td><td>${g.descripcion}</td><td class="gasto-valor">${formatearMoneda(g.valor)}</td>`;
         tbody.appendChild(tr);
     });
-    document.getElementById(totalId).textContent = formatearMoneda(totalGlobal); 
-    const totalPaginas = Math.ceil(listaDetalleActual.length / ITEMS_PER_PAGE) || 1;
-    const txtPag = config.idioma === 'es' ? 'Pág' : 'Page';
-    const txtReg = config.idioma === 'es' ? 'reg' : 'rec';
-    document.getElementById(labelInfoId).textContent = `${txtPag} ${paginaActual}/${totalPaginas} (${listaDetalleActual.length} ${txtReg})`;
+    const txt = config.idioma === 'es' ? 'reg' : 'rec';
+    document.getElementById(lblId).textContent=`Pág ${paginaActual}/${max} (${listaDetalleActual.length} ${txt})`;
 }
-
-function agregarGasto() {
-    const fecha = document.getElementById('gastoFecha').value;
-    const cat = document.getElementById('gastoCategoria').value;
-    const desc = sanitizar(document.getElementById('gastoDescripcion').value.trim());
-    const val = parsearValor(document.getElementById('gastoValor').value);
-    const pago = document.querySelector('input[name="tipoPago"]:checked').value;
-
-    if (!fecha || !cat || !desc || isNaN(val) || val <= 0) return mostrarToast(TRADUCTIONS[config.idioma].alertMissing, 'error');
-
-    gastos.push({ id: Date.now(), fecha, categoria: cat, descripcion: desc, valor: val, tipoPago: pago });
-    gastos.sort(sortData);
-    guardarGastos();
-    inicializarSelectoresMesAnio();
-
-    document.getElementById('gastoDescripcion').value = '';
-    document.getElementById('gastoValor').value = '';
-    document.getElementById('gastoCategoria').value = cat; 
-    document.getElementById('gastoFecha').value = fecha;
-
-    const btn = document.getElementById('btnAddGasto');
-    const originalHTML = btn.innerHTML;
-    const originalClass = btn.className;
-    
-    btn.className = 'btn btn-success';
-    btn.innerHTML = `<i class="fas fa-check"></i> ${TRADUCTIONS[config.idioma].alertGuardado}`;
-    setTimeout(() => {
-        btn.className = originalClass;
-        btn.innerHTML = originalHTML;
-    }, 2000);
-
-    paginaActualGastosMes = 1; 
-    renderizarGastosDelMes();
-}
-
-function actualizarResumenMensual() {
-    document.getElementById('detalleMensual').style.display = 'none';
-    document.getElementById('chartMensualContainer').style.display = 'block';
-    
-    const mes = document.getElementById('filtroMes').value;
-    const anio = document.getElementById('filtroAnioMensual').value;
-    let lista = gastos.filter(g => { const [y, m] = g.fecha.split('-'); return parseInt(y) == anio && parseInt(m) == mes; });
-
-    let s = { t:0, c:0, tr:0, tf:0 };
-    lista.forEach(g => {
-        s.t += g.valor;
-        if(g.tipoPago=='Contado') s.c += g.valor;
-        if(g.tipoPago=='Tarjeta') s.tr += g.valor;
-        if(g.tipoPago=='Transferencia') s.tf += g.valor;
-    });
-    document.getElementById('sum-total-mensual').textContent = formatearMoneda(s.t);
-    document.getElementById('sum-contado-mensual').textContent = formatearMoneda(s.c);
-    document.getElementById('sum-tarjeta-mensual').textContent = formatearMoneda(s.tr);
-    document.getElementById('sum-transf-mensual').textContent = formatearMoneda(s.tf);
-
-    if(filtroPagoMensual !== 'TODOS') lista = lista.filter(g => g.tipoPago === filtroPagoMensual);
-    
-    renderizarTablaResumen(lista, 'tablaResumenMensual', 'totalResumenMensual', (cat) => {
-        document.getElementById('chartMensualContainer').style.display = 'none';
-        listaDetalleActual = lista.filter(g => g.categoria === cat);
-        paginaActual = 1;
-        renderizarTablaDetallePaginada('tablaDetalleMensual', 'totalDetalleMensual', 'pageInfoMensual');
-        document.getElementById('detalleCategoriaMensual').textContent = cat;
-        
-        const detalleDiv = document.getElementById('detalleMensual');
-        detalleDiv.style.display = 'block';
-        
-        setTimeout(() => {
-            detalleDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-    });
-    actualizarGraficoCategorias(lista, 'chartMensualCanvas', 'chartMensualInstance');
-}
-
-function actualizarResumenHistorico(resetCategoria = false) {
-    if (resetCategoria) filtroCategoriaHistorico = 'TODOS';
-    document.getElementById('detalleHistorico').style.display = 'none';
-    document.getElementById('chartHistoricoContainer').style.display = (filtroCategoriaHistorico === 'TODOS') ? 'block' : 'none';
-    
-    const anio = document.getElementById('filtroAnioHistorico').value;
-    const listaAnio = gastos.filter(g => g.fecha.startsWith(anio));
-
-    let s = { t:0, c:0, tr:0, tf:0 };
-    listaAnio.forEach(g => {
-        s.t += g.valor;
-        if(g.tipoPago=='Contado') s.c += g.valor;
-        if(g.tipoPago=='Tarjeta') s.tr += g.valor;
-        if(g.tipoPago=='Transferencia') s.tf += g.valor;
-    });
-    document.getElementById('sum-total-historico').textContent = formatearMoneda(s.t);
-    document.getElementById('sum-contado-historico').textContent = formatearMoneda(s.c);
-    document.getElementById('sum-tarjeta-historico').textContent = formatearMoneda(s.tr);
-    document.getElementById('sum-transf-historico').textContent = formatearMoneda(s.tf);
-
-    let listaFiltrada = [...listaAnio];
-    if(filtroPagoHistorico !== 'TODOS') listaFiltrada = listaFiltrada.filter(g => g.tipoPago === filtroPagoHistorico);
-    
-    renderizarTablaResumen(listaFiltrada, 'tablaResumenHistorico', 'totalResumenHistorico', (cat) => {
-        filtroCategoriaHistorico = cat;
-        actualizarResumenHistorico(false);
-        
-        let sub = listaAnio.filter(g => g.categoria === cat);
-        if(filtroPagoHistorico !== 'TODOS') sub = sub.filter(g => g.tipoPago === filtroPagoHistorico);
-        listaDetalleActual = sub;
-        paginaActual = 1;
-        
-        renderizarTablaDetallePaginada('tablaDetalleHistorico', 'totalDetalleHistorico', 'pageInfoHistorico');
-        
-        document.getElementById('detalleCategoriaHistorico').textContent = cat;
-        const detalleDiv = document.getElementById('detalleHistorico');
-        detalleDiv.style.display = 'block';
-        
-        setTimeout(() => {
-            detalleDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-    });
-    
-    let graficos = [...listaFiltrada];
-    if(filtroCategoriaHistorico !== 'TODOS') graficos = graficos.filter(g => g.categoria === filtroCategoriaHistorico);
-    actualizarGraficoCategorias(graficos, 'chartHistoricoCanvas', 'chartHistoricoInstance');
-    actualizarGraficoGastosPorMes(graficos);
-}
-
-function renderizarTablaResumen(lista, tablaId, totalId, onRowClick) {
-    const tbody = document.querySelector(`#${tablaId} tbody`);
-    tbody.innerHTML = '';
-    const cats = {}; let total = 0;
-    lista.forEach(g => { cats[g.categoria] = (cats[g.categoria]||0) + g.valor; total += g.valor; });
-    
-    Object.entries(cats).sort((a,b)=>b[1]-a[1]).forEach(([cat, val]) => {
-        const tr = document.createElement('tr');
-        const pct = total>0 ? Math.round((val/total)*100) : 0;
-        if (tablaId === 'tablaResumenHistorico' && cat === filtroCategoriaHistorico) {
-            tr.style.backgroundColor = '#EFF6FF'; tr.style.fontWeight = 'bold';
-        }
-        tr.innerHTML = `<td>${cat}</td><td class="gasto-valor">${formatearMoneda(val)}</td><td class="col-porcentaje">${pct}%</td>`;
-        tr.onclick = () => onRowClick(cat);
-        tbody.appendChild(tr);
-    });
-    document.getElementById(totalId).textContent = formatearMoneda(total);
-}
-
-function cargarConfig() {
-    const def = { moneda: '$', idioma: 'es', categorias: ['Comida', 'Transporte', 'Hogar', 'Salud', 'Ocio', 'Otros'] };
-    const loaded = JSON.parse(localStorage.getItem('config_v2'));
-    config = loaded ? { ...def, ...loaded } : def;
-    if(!Array.isArray(config.categorias)) config.categorias = def.categorias;
-}
-
-function cambiarConfig(type, value) {
-    if (type === 'moneda') { 
-        config.moneda = value; 
-        localStorage.setItem('config_v2', JSON.stringify(config)); 
-        cargarDatos();
-    }
-    else if (type === 'idioma') { 
-        config.idioma = value; 
-        localStorage.setItem('config_v2', JSON.stringify(config)); 
-        aplicarIdioma(); 
-    }
-}
-
-function guardarGastos() {
-    localStorage.setItem('gastos_v2', JSON.stringify(gastos));
-    descripcionesUsadas = [...new Set(gastos.map(g => g.descripcion))];
-    actualizarSugerenciasDescripciones(descripcionesUsadas);
-}
-function sortData(a, b) { return new Date(b.fecha) - new Date(a.fecha) || b.id - a.id; }
-function parsearValor(s) { return parseFloat(s?.toString().replace(',', '.') || 0); }
 function formatearMoneda(v) { return `${config.moneda} ${(v||0).toLocaleString('es-EC', {minimumFractionDigits:2})}`; }
 function mostrarToast(m, t) { const x = document.getElementById('toast'); x.textContent=m; x.className=`show ${t}`; clearTimeout(toastTimeout); toastTimeout=setTimeout(()=>x.className='',3000); }
-
-function abrirModalEdicion(id) {
-    const g = gastos.find(x => x.id === id);
-    if(!g) return;
-    gastoEditandoId = id;
-    document.getElementById('modalFecha').value = g.fecha;
-    document.getElementById('modalCategoria').value = g.categoria;
-    document.getElementById('modalDescripcion').value = g.descripcion;
-    document.getElementById('modalValor').value = g.valor;
-    const rs = document.getElementsByName('modalTipoPago');
-    for(const r of rs) if(r.value===g.tipoPago) r.checked=true;
-    document.getElementById('modalEdicion').style.display='block';
-}
-function cerrarModal() { document.getElementById('modalEdicion').style.display='none'; gastoEditandoId=null; }
-function guardarEdicionDesdeModal() {
-    const g = gastos.find(x => x.id === gastoEditandoId);
-    if(g) {
-        g.fecha = document.getElementById('modalFecha').value;
-        g.categoria = document.getElementById('modalCategoria').value;
-        g.descripcion = sanitizar(document.getElementById('modalDescripcion').value);
-        g.valor = parsearValor(document.getElementById('modalValor').value);
-        g.tipoPago = document.querySelector('input[name="modalTipoPago"]:checked').value;
-        gastos.sort(sortData);
-        guardarGastos(); location.reload();
-    }
-}
-function confirmarEliminarGasto() {
-    mostrarModalConfirmacion(TRADUCTIONS[config.idioma].confirmDelete, () => {
-        gastos = gastos.filter(g => g.id !== gastoEditandoId); guardarGastos(); location.reload();
-    });
-}
-
-function agregarCategoria() {
-    const n = sanitizar(document.getElementById('nuevaCategoria').value.trim());
-    if(!n) return;
-    if(config.categorias.includes(n)) return mostrarToast(TRADUCTIONS[config.idioma].alertCatNombreExiste(n), 'error');
-    config.categorias.push(n);
-    config.categorias.sort();
-    localStorage.setItem('config_v2', JSON.stringify(config));
-    document.getElementById('nuevaCategoria').value = '';
-    actualizarSelectCategorias();
-    renderizarTablaCategorias();
-}
-function actualizarSelectCategorias() {
-    const o = config.categorias.map(c => `<option value="${c}">${c}</option>`).join('');
-    document.getElementById('gastoCategoria').innerHTML = o;
-    document.getElementById('modalCategoria').innerHTML = o;
-}
-function renderizarTablaCategorias() {
-    const tb = document.querySelector('#tablaCategorias tbody'); tb.innerHTML='';
-    config.categorias.forEach((c, i) => tb.innerHTML+=`
-    <tr>
-        <td>${c}</td>
-        <td class="acciones-container">
-            <button class="btn-accion-tabla btn-accion-editar" onclick="abrirModalCategoria(${i})"><i class="fas fa-pen"></i></button>
-            <button class="btn-accion-tabla btn-accion-borrar" onclick="confirmarEliminarCategoria(${i})"><i class="fas fa-trash"></i></button>
-        </td>
-    </tr>`);
-}
-function abrirModalCategoria(i) { categoriaEditandoNombreAntiguo = config.categorias[i]; document.getElementById('modalCategoriaNombre').value=categoriaEditandoNombreAntiguo; document.getElementById('modalEdicionCategoria').style.display='block'; }
-function cerrarModalCategoria() { document.getElementById('modalEdicionCategoria').style.display='none'; }
-function guardarEdicionCategoria() {
-    const n = sanitizar(document.getElementById('modalCategoriaNombre').value.trim());
-    if(n && n!==categoriaEditandoNombreAntiguo) {
-        if(config.categorias.includes(n)) return mostrarToast(TRADUCTIONS[config.idioma].alertCatNombreExiste(n), 'error');
-        config.categorias[config.categorias.indexOf(categoriaEditandoNombreAntiguo)] = n;
-        gastos.forEach(g => { if(g.categoria===categoriaEditandoNombreAntiguo) g.categoria=n; });
-        localStorage.setItem('config_v2', JSON.stringify(config)); guardarGastos(); location.reload();
-    }
-}
-function confirmarEliminarCategoria(i) {
-    const c = config.categorias[i];
-    if(gastos.some(g=>g.categoria===c)) return mostrarToast(TRADUCTIONS[config.idioma].alertCatNoSePuedeBorrar(c), 'error');
-    mostrarModalConfirmacion(TRADUCTIONS[config.idioma].modalConfirmDeleteCat(c), () => { config.categorias.splice(i,1); localStorage.setItem('config_v2', JSON.stringify(config)); guardarGastos(); location.reload(); });
-}
-
-function mostrarModalConfirmacion(t, cb) { document.getElementById('modalConfirmBody').textContent=t; confirmCallback=cb; document.getElementById('modalConfirmacion').style.display='block'; }
-function ejecutarConfirmacion() { if(confirmCallback) confirmCallback(); cerrarModalConfirmacion(); }
-function cerrarModalConfirmacion() { document.getElementById('modalConfirmacion').style.display='none'; }
-
 function inicializarSelectoresMesAnio() {
-    const sm = document.getElementById('filtroMes'); const sa = document.getElementById('filtroAnioMensual'); const sh = document.getElementById('filtroAnioHistorico');
-    sm.innerHTML=''; sa.innerHTML=''; sh.innerHTML='';
-    const dataYears = gastos.map(g => parseInt(g.fecha.split('-')[0]));
-    const currentYear = new Date().getFullYear();
-    const minYear = dataYears.length ? Math.min(...dataYears, currentYear) : currentYear;
-    const maxYear = Math.max(...dataYears, 2030); // Forzar hasta 2030
-
-    const finalYears = [];
-    for(let y = maxYear; y >= minYear; y--) {
-        finalYears.push(y);
-    }
-    
-    finalYears.forEach(y => { 
-        sa.add(new Option(y, y));
-        sh.add(new Option(y, y));
-    });
-    
-    MONTH_NAMES_FULL[config.idioma].forEach((m,i) => sm.add(new Option(m,i+1)));
-
-    const hoy = new Date();
-    sm.value = hoy.getMonth() + 1;
-    sa.value = hoy.getFullYear();
-    sh.value = hoy.getFullYear();
+    const sa = document.getElementById('filtroAnioMensual'); const sh = document.getElementById('filtroAnioHistorico'); const sm = document.getElementById('filtroMes');
+    sa.innerHTML=''; sh.innerHTML=''; sm.innerHTML='';
+    const dY = gastos.map(g => parseInt(g.fecha.split('-')[0]));
+    const curY = new Date().getFullYear();
+    const min = dY.length ? Math.min(...dY, curY) : curY;
+    for(let y=Math.max(...dY, 2030); y>=min; y--) { sa.add(new Option(y,y)); sh.add(new Option(y,y)); }
+    MONTH_NAMES_FULL[config.idioma].forEach((m,i)=>sm.add(new Option(m,i+1)));
+    sm.value = new Date().getMonth()+1; sa.value=curY; sh.value=curY;
 }
-function actualizarSugerenciasDescripciones(l) { document.getElementById('sugerenciasDescripciones').innerHTML=l.map(d=>`<option value="${d}">`).join(''); }
-function filtrarTablaDetalle(i, t) {
-    const esDetallePaginado = t.includes('Detalle');
-    const v = document.getElementById(i).value.toLowerCase();
-    const rs = document.querySelectorAll(`#${t} tbody tr`);
-    let tot=0;
-    rs.forEach(r => {
-        if(r.textContent.toLowerCase().includes(v)) { 
-            r.style.display=''; 
-            if (!esDetallePaginado) tot+=parsearValor(r.cells[2].textContent.replace(config.moneda,'')); 
+
+// Punto 4: Totales en Tarjetas (Pills) CORREGIDO IDs
+function actualizarResumenMensual() {
+    const mes = document.getElementById('filtroMes').value;
+    const anio = document.getElementById('filtroAnioMensual').value;
+    const pago = document.querySelector('input[name="filtroTipoPagoMensual"]:checked').value;
+    
+    // 1. Totales Reales (pre-filtro)
+    let listaBase = gastos.filter(g => { const [y, m] = g.fecha.split('-'); return parseInt(y) == anio && parseInt(m) == mes; });
+    
+    let sumTotal=0, sumEfec=0, sumTarj=0, sumTrans=0;
+    listaBase.forEach(g => {
+        sumTotal += g.valor;
+        if(g.tipoPago==='Contado') sumEfec += g.valor;
+        if(g.tipoPago==='Tarjeta') sumTarj += g.valor;
+        if(g.tipoPago==='Transferencia') sumTrans += g.valor;
+    });
+
+    // IDs Restaurados de v1.0
+    document.getElementById('sum-total-mensual').textContent = formatearMoneda(sumTotal);
+    document.getElementById('sum-contado-mensual').textContent = formatearMoneda(sumEfec);
+    document.getElementById('sum-tarjeta-mensual').textContent = formatearMoneda(sumTarj);
+    document.getElementById('sum-transf-mensual').textContent = formatearMoneda(sumTrans);
+
+    // 2. Filtro para tabla y grafico
+    let listaFiltrada = listaBase;
+    if(pago !== 'TODOS') listaFiltrada = listaFiltrada.filter(g=>g.tipoPago === pago);
+
+    const tbody = document.querySelector('#tablaResumenMensual tbody'); tbody.innerHTML='';
+    const d = {}; let totFilt=0; listaFiltrada.forEach(g=>{d[g.categoria]=(d[g.categoria]||0)+g.valor; totFilt+=g.valor;});
+    
+    Object.entries(d).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>{
+        const tr=document.createElement('tr');
+        const pct = totFilt>0?Math.round((v/totFilt)*100):0;
+        tr.innerHTML=`<td>${k}</td><td class="gasto-valor">${formatearMoneda(v)}</td><td class="col-porcentaje">${pct}%</td>`;
+        tr.onclick=()=>verDetalleMensual(k, listaFiltrada); // Punto 5
+        tbody.appendChild(tr);
+    });
+    document.getElementById('totalResumenMensual').textContent=formatearMoneda(totFilt);
+    actualizarGrafico(listaFiltrada, 'chartMensualCanvas', 'doughnut');
+}
+
+function actualizarResumenHistorico(reset) {
+    const anio = document.getElementById('filtroAnioHistorico').value;
+    const pago = document.querySelector('input[name="filtroTipoPagoHistorico"]:checked').value;
+    
+    // 1. Totales Reales
+    let listaBase = gastos.filter(g=>g.fecha.startsWith(anio));
+    let sumTotal=0, sumEfec=0, sumTarj=0, sumTrans=0;
+    listaBase.forEach(g => {
+        sumTotal += g.valor;
+        if(g.tipoPago==='Contado') sumEfec += g.valor;
+        if(g.tipoPago==='Tarjeta') sumTarj += g.valor;
+        if(g.tipoPago==='Transferencia') sumTrans += g.valor;
+    });
+
+    // IDs Restaurados de v1.0
+    document.getElementById('sum-total-historico').textContent = formatearMoneda(sumTotal);
+    document.getElementById('sum-contado-historico').textContent = formatearMoneda(sumEfec);
+    document.getElementById('sum-tarjeta-historico').textContent = formatearMoneda(sumTarj);
+    document.getElementById('sum-transf-historico').textContent = formatearMoneda(sumTrans);
+
+    // 2. Filtro
+    let listaFiltrada = listaBase;
+    if(pago !== 'TODOS') listaFiltrada = listaFiltrada.filter(g=>g.tipoPago === pago);
+
+    const tbody = document.querySelector('#tablaResumenHistorico tbody'); tbody.innerHTML='';
+    const d = {}; let totFilt=0; listaFiltrada.forEach(g=>{d[g.categoria]=(d[g.categoria]||0)+g.valor; totFilt+=g.valor;});
+    Object.entries(d).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>{
+        const tr=document.createElement('tr');
+        const pct = totFilt>0?Math.round((v/totFilt)*100):0;
+        tr.innerHTML=`<td>${k}</td><td class="gasto-valor">${formatearMoneda(v)}</td><td class="col-porcentaje">${pct}%</td>`;
+        tr.onclick=()=>verDetalleHistorico(k, listaFiltrada); // Punto 5
+        tbody.appendChild(tr);
+    });
+    document.getElementById('totalResumenHistorico').textContent=formatearMoneda(totFilt);
+    actualizarGrafico(listaFiltrada, 'chartHistoricoCanvas', 'doughnut');
+    actualizarGraficoBarras(listaFiltrada);
+}
+
+function verDetalleMensual(cat, listaFull) {
+    document.getElementById('chartMensualContainer').style.display='none';
+    document.getElementById('detalleMensual').style.display='block';
+    document.getElementById('detalleCategoriaMensual').textContent=cat;
+    listaDetalleActual = listaFull.filter(g=>g.categoria===cat);
+    paginaActual=1; renderizarTablaDetallePaginada('tablaDetalleMensual','totalDetalleMensual','pageInfoMensual');
+    document.getElementById('detalleMensual').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function verDetalleHistorico(cat, listaFull) {
+    document.getElementById('chartHistoricoContainer').style.display='none';
+    document.getElementById('detalleHistorico').style.display='block';
+    document.getElementById('detalleCategoriaHistorico').textContent=cat;
+    listaDetalleActual = listaFull.filter(g=>g.categoria===cat);
+    paginaActual=1; renderizarTablaDetallePaginada('tablaDetalleHistorico','totalDetalleHistorico','pageInfoHistorico');
+    document.getElementById('detalleHistorico').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function actualizarGrafico(l, id, tipo) {
+    const ctx=document.getElementById(id).getContext('2d');
+    const d={}; let tot=0; l.forEach(g=>{d[g.categoria]=(d[g.categoria]||0)+g.valor; tot+=g.valor;});
+    if(window[id+'Inst']) window[id+'Inst'].destroy();
+    window[id+'Inst'] = new Chart(ctx, {
+        type: tipo,
+        data: { labels:Object.keys(d), datasets:[{data:Object.values(d), backgroundColor:['#2563EB','#10B981','#F59E0B','#8B5CF6','#EC4899','#06B6D4'], borderWidth:0}] },
+        options: { 
+            responsive:true, maintainAspectRatio:false, 
+            plugins: { 
+                legend:{display:false}, 
+                // Punto 6: Decimales en porcentaje
+                datalabels:{
+                    color:'white', 
+                    display:(ctx)=>ctx.dataset.data[ctx.dataIndex]/tot > 0.05,
+                    formatter: (value) => {
+                        if(tot === 0) return "0%";
+                        return (value * 100 / tot).toFixed(2) + "%";
+                    }
+                } 
+            } 
         }
-        else r.style.display='none';
     });
-    if (!esDetallePaginado) {
-        document.querySelector(`#${t} tfoot .gasto-valor`).textContent = formatearMoneda(tot);
+}
+function actualizarGraficoBarras(l) {
+    const ctx=document.getElementById('chartHistoricoMesesContainer').querySelector('canvas').getContext('2d');
+    const d=Array(12).fill(0); l.forEach(g=>d[parseInt(g.fecha.split('-')[1])-1]+=g.valor);
+    if(chartHistoricoMesesInstance) chartHistoricoMesesInstance.destroy();
+    chartHistoricoMesesInstance = new Chart(ctx, {
+        type:'bar', data:{labels:MONTH_NAMES_FULL[config.idioma].map(m=>m.substr(0,3)), datasets:[{data:d, backgroundColor:'#2563EB'}]},
+        options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, datalabels:{display:false}}}
+    });
+}
+function abrirModalEdicion(id) { gastoEditandoId=id; const g=gastos.find(x=>x.id===id); document.getElementById('modalValor').value=g.valor; document.getElementById('modalDescripcion').value=g.descripcion; document.getElementById('modalCategoria').value=g.categoria; document.getElementById('modalFecha').value=g.fecha; document.getElementById('modalEdicion').style.display='block'; }
+function cerrarModal() { document.getElementById('modalEdicion').style.display='none'; }
+function guardarEdicionDesdeModal() { 
+    const g=gastos.find(x=>x.id===gastoEditandoId);
+    if(g) {
+        g.fecha=document.getElementById('modalFecha').value;
+        g.categoria=document.getElementById('modalCategoria').value;
+        g.descripcion=sanitizar(document.getElementById('modalDescripcion').value);
+        g.valor=parseFloat(document.getElementById('modalValor').value);
+        g.tipoPago=document.querySelector('input[name="modalTipoPago"]:checked').value;
+        localStorage.setItem('gastos_v2', JSON.stringify(gastos));
+        location.reload();
     }
 }
-
-// FUNCION CSV MEJORADA (v8.5)
+function confirmarEliminarGasto() { if(confirm('Borrar?')) { gastos=gastos.filter(g=>g.id!==gastoEditandoId); localStorage.setItem('gastos_v2', JSON.stringify(gastos)); location.reload(); } }
+function cambiarConfig(k,v) { config[k]=v; localStorage.setItem('config_v2', JSON.stringify(config)); location.reload(); }
+function agregarCategoria() { const n=sanitizar(document.getElementById('nuevaCategoria').value); config.categorias.push(n); localStorage.setItem('config_v2', JSON.stringify(config)); cargarDatos(); }
+function actualizarSelectCategorias() { const s=document.getElementById('modalCategoria'); s.innerHTML=''; config.categorias.forEach(c=>s.add(new Option(c,c))); }
+function renderizarTablaCategorias() { const t=document.querySelector('#tablaCategorias tbody'); t.innerHTML=''; config.categorias.forEach((c,i)=>t.innerHTML+=`<tr><td>${c}</td><td style="text-align:center"><button class="btn-accion-tabla btn-accion-editar" onclick="abrirModalCategoria(${i})"><i class="fas fa-pen"></i></button><button class="btn-accion-tabla btn-accion-borrar" onclick="borrarCat(${i})"><i class="fas fa-trash"></i></button></td></tr>`); }
+function abrirModalCategoria(i) { categoriaEditandoNombreAntiguo = config.categorias[i]; document.getElementById('modalCategoriaNombre').value=categoriaEditandoNombreAntiguo; document.getElementById('modalEdicionCategoria').style.display='block'; }
+function borrarCat(i) { config.categorias.splice(i,1); localStorage.setItem('config_v2', JSON.stringify(config)); cargarDatos(); }
+function guardarEdicionCategoria() { 
+    const n = sanitizar(document.getElementById('modalCategoriaNombre').value);
+    config.categorias[config.categorias.indexOf(categoriaEditandoNombreAntiguo)] = n;
+    gastos.forEach(g => { if(g.categoria===categoriaEditandoNombreAntiguo) g.categoria=n; });
+    localStorage.setItem('config_v2', JSON.stringify(config)); localStorage.setItem('gastos_v2', JSON.stringify(gastos)); location.reload();
+}
+function cerrarModalCategoria() { document.getElementById('modalEdicionCategoria').style.display='none'; }
+function cerrarModalConfirmacion() { document.getElementById('modalConfirmacion').style.display='none'; }
 function generarYCompartirCSV(tipo) {
-    let nombreArchivo = '';
-    let datosFiltrados = [];
-    let titulo = '';
-
-    if (tipo === 'mensual') {
-        const mes = document.getElementById('filtroMes').value;
-        const anio = document.getElementById('filtroAnioMensual').value;
-        const nombreMes = MONTH_NAMES_FULL[config.idioma][mes - 1];
-        
-        datosFiltrados = gastos.filter(g => {
-            const [y, m] = g.fecha.split('-');
-            return parseInt(y) == anio && parseInt(m) == mes;
-        });
-        nombreArchivo = `Gastos_${nombreMes}_${anio}`;
-        titulo = `Reporte ${nombreMes} ${anio}`;
+    let data = []; let name = '';
+    if(tipo==='mensual') {
+        const m=document.getElementById('filtroMes').value; const a=document.getElementById('filtroAnioMensual').value;
+        data=gastos.filter(g=>{const[y,mm]=g.fecha.split('-'); return y==a && mm==m;});
+        name=`Gastos_${m}_${a}`;
     } else {
-        const anio = document.getElementById('filtroAnioHistorico').value;
-        datosFiltrados = gastos.filter(g => g.fecha.startsWith(anio));
-        nombreArchivo = `Gastos_${anio}`;
-        titulo = `Reporte ${anio}`;
+        const a=document.getElementById('filtroAnioHistorico').value;
+        data=gastos.filter(g=>g.fecha.startsWith(a));
+        name=`Gastos_${a}`;
     }
-
-    if (datosFiltrados.length === 0) {
-        mostrarToast(TRADUCTIONS[config.idioma].alertNoExport, 'error');
-        return;
-    }
-
-    // CSV con ;
-    let csvContent = "\uFEFF"; 
-    csvContent += "Fecha;Categoría;Descripción;Valor;TipoPago\n";
-
-    datosFiltrados.forEach(g => {
-        let desc = g.descripcion.replace(/;/g, ","); 
-        
-        // LÓGICA DECIMAL:
-        // Si es Inglés -> Deja el punto (10.50)
-        // Si es Español -> Cambia a coma (10,50)
-        let valor = g.valor.toString();
-        if (config.idioma === 'es') {
-            valor = valor.replace('.', ',');
-        }
-
-        csvContent += `${g.fecha};${g.categoria};${desc};${valor};${g.tipoPago}\n`;
+    if(!data.length) return alert('No hay datos');
+    let csv = "\uFEFFFecha;Categoría;Descripción;Valor;TipoPago\n";
+    data.forEach(g=>{
+        let v=g.valor.toString(); if(config.idioma==='es') v=v.replace('.',',');
+        csv+=`${g.fecha};${g.categoria};${g.descripcion};${v};${g.tipoPago}\n`;
     });
-
-    const now = new Date();
-    const timestamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}`;
-    const finalFileName = `${nombreArchivo}_${timestamp}.csv`;
-
-    const file = new File([new Blob([csvContent], {type: 'text/csv;charset=utf-8;'})], finalFileName, {type: 'text/csv'});
-
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(file);
-    a.download = finalFileName;
-    a.click();
-
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        setTimeout(async () => {
-            try {
-                await navigator.share({
-                    files: [file],
-                    title: 'Control de Gastos',
-                    text: titulo
-                });
-            } catch (error) {
-                console.log('Compartir cancelado o no soportado');
-            }
-        }, 500);
-    }
+    const f=new File([new Blob([csv],{type:'text/csv'})], `${name}.csv`, {type:'text/csv'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(f); a.download=f.name; a.click();
+    if(navigator.canShare && navigator.canShare({files:[f]})) navigator.share({files:[f], title:'Gastos'});
 }
-
-async function compartirBackupJSON() {
+function compartirBackupJSON() {
     const txt = JSON.stringify({gastos_v2:gastos, config_v2:config}, null, 2);
-    
-    const now = new Date();
-    const fileName = `Backup_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}-${String(now.getSeconds()).padStart(2, '0')}.txt`;
-
-    const f = new File([new Blob([txt],{type:'text/plain'})], fileName, {type:'text/plain'});
-    descargar(f);
-    if(navigator.canShare && navigator.canShare({files:[f]})) {
-        try {
-            setTimeout(async () => {
-                await navigator.share({files:[f], title:'Backup Control Gastos', text: 'Backup de mis gastos'});
-            }, 500);
-        } catch(e) { console.log('No compartido'); }
-    }
+    const f = new File([new Blob([txt],{type:'text/plain'})], `Backup_${new Date().toISOString()}.txt`, {type:'text/plain'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(f); a.download=f.name; a.click();
+    if(navigator.canShare && navigator.canShare({files:[f]})) navigator.share({files:[f], title:'Backup'});
 }
-function descargar(f){const a=document.createElement('a'); a.href=URL.createObjectURL(f); a.download=f.name; a.click();}
-function exportarReporteCSV(t) { compartirBackupJSON(); } 
-
 function importarDatos(e) {
     const f = e.target.files[0]; if(!f) return;
     const r = new FileReader();
     r.onload = (ev) => {
         try {
             const d = JSON.parse(ev.target.result);
-            if(d.gastos_v2) { 
-                localStorage.setItem('gastos_v2', JSON.stringify(d.gastos_v2)); 
-                localStorage.setItem('config_v2', JSON.stringify(d.config_v2)); 
-                mostrarToast(TRADUCTIONS[config.idioma].alertImportSuccessJSON, 'success');
-                const btn = document.getElementById('btnImportarTrigger');
-                btn.innerHTML = `<i class="fas fa-check"></i> ${TRADUCTIONS[config.idioma].btnCargado}`;
-                setTimeout(() => { location.reload(); }, 1500);
-            }
-        } catch { 
-            mostrarToast(TRADUCTIONS[config.idioma].alertImportErrorJSON, 'error');
-        }
+            if(d.gastos_v2) { localStorage.setItem('gastos_v2', JSON.stringify(d.gastos_v2)); localStorage.setItem('config_v2', JSON.stringify(d.config_v2)); location.reload(); }
+        } catch { alert('Error archivo'); }
     };
     r.readAsText(f);
 }
-function confirmarLimpiarTodosLosDatos(){ mostrarModalConfirmacion(TRADUCTIONS[config.idioma].confirmDeleteAll, ()=>{localStorage.clear(); location.reload();}); }
-
-function actualizarGraficoCategorias(l, c, i) {
-    const ctx=document.getElementById(c).getContext('2d');
-    const d={}; let totalChart = 0;
-    l.forEach(g=> {
-        d[g.categoria]=(d[g.categoria]||0)+g.valor;
-        totalChart += g.valor;
-    });
-    
-    if(window[i]) window[i].destroy();
-    
-    const paleta = ['#2563EB', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#64748B'];
-
-    window[i] = new Chart(ctx, { 
-        type:'doughnut', 
-        data:{
-            labels:Object.keys(d), 
-            datasets:[{
-                data:Object.values(d), 
-                backgroundColor: paleta, 
-                borderWidth:1
-            }]
-        }, 
-        options:{
-            responsive:true, 
-            maintainAspectRatio:false, 
-            plugins:{
-                legend:{display:false},
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let val = context.raw;
-                            let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            let pct = (val * 100 / total).toFixed(2) + '%';
-                            return `${context.label}: ${formatearMoneda(val)} : ${pct}`;
-                        }
-                    }
-                },
-                datalabels: {
-                    color: 'white',
-                    font: { weight: 'bold', size: 12 }, 
-                    display: function(context) {
-                        if (totalChart === 0) return false;
-                        let value = context.dataset.data[context.dataIndex];
-                        return (value / totalChart) > 0.04;
-                    },
-                    formatter: (value, ctx) => {
-                        if(totalChart === 0) return "0%";
-                        let percentage = (value * 100 / totalChart).toFixed(2) + "%";
-                        return percentage;
-                    }
-                }
-            }
-        } 
-    });
-    if(i==='chartMensualInstance') chartMensualInstance=window[i]; else chartHistoricoInstance=window[i];
-}
-
-function actualizarGraficoGastosPorMes(l) {
-    const ctx=document.getElementById('chartHistoricoMesesCanvas').getContext('2d');
-    const md=Array(12).fill(0); 
-    l.forEach(g=>md[parseInt(g.fecha.split('-')[1])-1]+=g.valor);
-    
-    const tituloGrafico = filtroCategoriaHistorico === 'TODOS' 
-        ? (config.idioma === 'es' ? 'Gastos Mensuales (Global)' : 'Monthly Expenses (Global)')
-        : `${config.idioma === 'es' ? 'Gastos' : 'Expenses'}: ${filtroCategoriaHistorico}`;
-
-    if(chartHistoricoMesesInstance) chartHistoricoMesesInstance.destroy();
-    
-    chartHistoricoMesesInstance = new Chart(ctx, {
-        type:'bar',
-        data:{
-            labels:MONTH_NAMES_FULL[config.idioma].map(m=>m.substr(0,3)), 
-            datasets:[{data:md, backgroundColor:'#2563EB'}]
-        },
-        options:{
-            responsive:true, 
-            maintainAspectRatio:false, 
-            plugins:{
-                legend:{display:false},
-                datalabels: { display: false },
-                title: {
-                    display: true,
-                    text: tituloGrafico,
-                    font: { size: 14 }
-                }
-            }
-        }
-    });
-}
-
+function confirmarLimpiarTodosLosDatos() { if(confirm('¿Borrar todo?')) { localStorage.clear(); location.reload(); } }
+function actualizarSugerenciasDescripciones(l) { document.getElementById('sugerenciasDescripciones').innerHTML=l.map(d=>`<option value="${d}">`).join(''); }
 </script>
 </html>

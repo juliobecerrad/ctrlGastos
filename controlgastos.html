@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     
     <style>
         /* --- VARIABLES --- */
@@ -57,7 +59,7 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- ESTILOS GENERALES (Vistas Mes, Año, Config) --- */
+        /* --- ESTILOS GENERALES --- */
         h2, h3 { color: var(--text-main); text-align: center; }
         h2 { font-size: 1.3em; margin-top: 20px; color: var(--primary-color); font-weight: 700; }
         
@@ -91,6 +93,9 @@
         .btn-success { background-color: var(--success-color); color: white; }
         .btn-secondary { background-color: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); }
 
+        .export-buttons-container { display: flex; gap: 10px; margin-top: 15px; }
+        .export-buttons-container button { margin-top: 0; }
+
         button.btn-accion-tabla { 
             width: auto; padding: 5px 10px; font-size: 0.9em; margin: 0 2px; border-radius: 6px;
             background-color: transparent !important; border: 1px solid; 
@@ -111,6 +116,8 @@
         .tabla-gastos .gasto-valor { text-align: right; white-space: nowrap; font-weight: 600; }
         .tabla-gastos tfoot tr { font-weight: bold; background-color: var(--table-header-bg); border-top: 2px solid var(--border-color); }
 
+        .col-porcentaje { text-align: right !important; padding-right: 15px !important; }
+
         .payment-type-group { display: flex; justify-content: space-around; margin-bottom: 5px; gap: 5px; }
         .payment-type-group input { display: none; }
         .payment-type-group label {
@@ -122,6 +129,11 @@
         .payment-type-group input:checked + label {
             background-color: #EFF6FF; border-color: var(--primary-color); font-weight: bold; color: var(--primary-color);
         }
+        
+        label[for*="Contado"] i, label[for*="Contado"] i { color: var(--color-cash) !important; }
+        label[for*="Tarjeta"] i, label[for*="Tarjeta"] i { color: var(--color-card) !important; }
+        label[for*="Transf"] i, label[for*="Transf"] i { color: var(--color-transfer) !important; }
+
         .payment-filters-grid { display: flex; flex-wrap: wrap; }
         .payment-filters-grid label[for*="Total"] { flex-basis: 100%; margin-bottom: 5px; }
         .payment-filters-grid label:not([for*="Total"]) { flex-grow: 1; flex-basis: 0; }
@@ -196,24 +208,12 @@
         }
         .smart-desc-input:focus { outline: none; border-color: var(--primary-color); }
 
-        /* --- DISPLAY VALOR ESTILO PANTALLA CALCULADORA --- */
         .smart-value-display {
-            font-size: 2.8em; /* Grande */
-            font-weight: bold;
-            color: var(--primary-color);
-            
-            background-color: #F8FAFC; /* Fondo tipo pantalla */
-            border: 2px solid #E2E8F0; /* Borde discreto */
-            border-radius: 12px; /* Bordes redondeados */
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); /* Sombra interna sutil */
-            
-            padding: 5px 15px; 
-            margin: 8px 0; 
-            letter-spacing: 1px;
-            
-            display: flex; 
-            justify-content: space-between; /* Espacio entre el numero y el boton borrar */
-            align-items: center; 
+            font-size: 2.8em; font-weight: bold; color: var(--primary-color);
+            background-color: #F8FAFC; border: 2px solid #E2E8F0; 
+            border-radius: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            padding: 5px 15px; margin: 8px 0; letter-spacing: 1px;
+            display: flex; justify-content: space-between; align-items: center; 
             min-height: 60px;
         }
         
@@ -222,46 +222,31 @@
             font-size: 0.6em; cursor: pointer; padding: 5px; opacity: 0.6;
         }
         
-        /* --- Grid Categorías: Scroll Horizontal 2 Filas --- */
+        /* Grid Categorías: Scroll Horizontal 2 Filas */
         .smart-cat-grid {
             display: grid;
-            grid-template-rows: repeat(2, 1fr); /* 2 Filas */
-            grid-auto-flow: column; /* Flujo Horizontal */
-            gap: 8px; /* Separación un poco mayor */
-            
-            overflow-x: auto;
-            overflow-y: hidden;
-            
-            /* Altura ajustada para que quepan bien las 2 filas */
-            max-height: 95px; 
-            padding: 2px;
-            
-            /* SEPARACIÓN DEL CONTENEDOR DE PAGOS */
+            grid-template-rows: repeat(2, 1fr); 
+            grid-auto-flow: column; 
+            gap: 8px; 
+            overflow-x: auto; overflow-y: hidden;
+            max-height: 95px; padding: 2px;
             margin-bottom: 15px; 
-
-            scrollbar-width: none; 
-            -ms-overflow-style: none;
+            scrollbar-width: none; -ms-overflow-style: none;
         }
         .smart-cat-grid::-webkit-scrollbar { display: none; }
         
         .smart-cat-grid.expanded { 
-            grid-template-rows: auto; 
-            grid-auto-flow: row; 
+            grid-template-rows: auto; grid-auto-flow: row; 
             grid-template-columns: repeat(3, 1fr); 
-            max-height: 250px; 
-            overflow-y: auto; 
-            overflow-x: hidden;
+            max-height: 250px; overflow-y: auto; overflow-x: hidden;
         } 
         
         .cat-btn {
             background-color: var(--bg-card); border: 1px solid var(--border-color);
-            color: var(--secondary-color); 
-            padding: 4px 8px; 
-            border-radius: 8px;
+            color: var(--secondary-color); padding: 4px 8px; border-radius: 8px;
             font-size: 0.8em; cursor: pointer; text-align: center;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            height: 38px; /* Altura fija para el botón */
-            display: flex; align-items: center; justify-content: center;
+            height: 38px; display: flex; align-items: center; justify-content: center;
             min-width: 85px; 
         }
         .cat-btn.selected {
@@ -309,7 +294,7 @@
             </div>
             
             <div id="smartCategories" class="smart-cat-grid"></div>
-            <input type="hidden" id="gastoCategoria"> 
+            <input type="hidden" id="gastoCategoria" value=""> 
             
             <div class="payment-type-group">
                 <input type="radio" id="pagoContado" name="tipoPago" value="Contado" checked>
@@ -389,7 +374,15 @@
             </div>
         </div>
         <div class="chart-container" id="chartMensualContainer"><canvas id="chartMensualCanvas"></canvas></div>
-        <button class="btn btn-secondary" id="btnExportMes" onclick="generarYCompartirCSV('mensual')" data-i18n="btnCsvMes">Exportar Mes</button> 
+        
+        <div class="export-buttons-container">
+            <button class="btn btn-secondary" id="btnExportMes" onclick="generarYCompartirCSV('mensual')" style="flex:1;">
+                <i class="fas fa-file-csv" style="color: #10B981; margin-right: 5px;"></i> <span data-i18n="btnCsvMes">Excel</span>
+            </button> 
+            <button class="btn btn-secondary" onclick="generarPDF('mensual')" style="flex:1;">
+                <i class="fas fa-file-pdf" style="color: #EF4444; margin-right: 5px;"></i> PDF
+            </button>
+        </div>
     </div>
 
     <div id="historico" class="pantalla">
@@ -429,7 +422,15 @@
         </div>
         <div class="chart-container" id="chartHistoricoContainer"><canvas id="chartHistoricoCanvas"></canvas></div>
         <div class="chart-container" id="chartHistoricoMesesContainer"><canvas id="chartHistoricoMesesCanvas"></canvas></div>
-        <button class="btn btn-secondary" id="btnExportYear" onclick="generarYCompartirCSV('historico')" data-i18n="btnCsvAnio">Exportar Año</button> 
+        
+        <div class="export-buttons-container">
+            <button class="btn btn-secondary" id="btnExportYear" onclick="generarYCompartirCSV('historico')" style="flex:1;">
+                <i class="fas fa-file-csv" style="color: #10B981; margin-right: 5px;"></i> <span data-i18n="btnCsvAnio">Excel</span>
+            </button> 
+            <button class="btn btn-secondary" onclick="generarPDF('historico')" style="flex:1;">
+                <i class="fas fa-file-pdf" style="color: #EF4444; margin-right: 5px;"></i> PDF
+            </button>
+        </div>
     </div>
 
     <div id="configuracion" class="pantalla">
@@ -474,11 +475,11 @@
             <div class="form-group"><input type="text" id="modalValor" inputmode="decimal"></div>
             <div class="payment-type-group">
                 <input type="radio" id="modalPagoContado" name="modalTipoPago" value="Contado">
-                <label for="modalPagoContado">Contado</label>
+                <label for="modalPagoContado"><i class="fas fa-coins"></i> <span data-i18n="lblContado">Contado</span></label>
                 <input type="radio" id="modalPagoTarjeta" name="modalTipoPago" value="Tarjeta">
-                <label for="modalPagoTarjeta">Tarjeta</label>
+                <label for="modalPagoTarjeta"><i class="far fa-credit-card"></i> <span data-i18n="lblTarjeta">Tarjeta</span></label>
                 <input type="radio" id="modalPagoTransferencia" name="modalTipoPago" value="Transferencia">
-                <label for="modalPagoTransferencia">Transf.</label>
+                <label for="modalPagoTransferencia"><i class="fas fa-mobile-alt"></i> <span data-i18n="lblTransf">Transf.</span></label>
             </div>
             <div class="modal-botones-row">
                 <button class="btn btn-success" onclick="guardarEdicionDesdeModal()" data-i18n="btnGuardar">Guardar</button>
@@ -532,6 +533,7 @@ const MONTH_NAMES_FULL = {
 const TRADUCTIONS = {
     es: {
         alertMissing: "Faltan campos.", alertGuardado: "¡Guardado!",
+        alertMissingCat: "¡Seleccione una categoría!",
         confirmDelete: "¿Eliminar?", confirmDeleteAll: "¿BORRAR TODO?",
         alertNoExport: "Sin datos.", alertCSVEmpty: "Vacío.",
         alertImportSuccess: (c) => `Importados ${c}.`, alertImportSuccessJSON: "¡Datos OK!",
@@ -545,8 +547,8 @@ const TRADUCTIONS = {
         titleGastosMes: "Últimos Gastos", lblClicEditar: "Clic para editar", colFecha: "Fecha", colDesc: "Descripción",
         colValor: "Valor", lblTotal: "TOTAL", titleResumenMensual: "Resumen Mensual", titleTotalCategoria: "Total por Categoría",
         colTotal: "Total", colCategoria: "Categoría", titleDetalle: "Detalle", phBuscar: "Buscar...", lblTotalGeneral: "TOTAL GENERAL",
-        btnAnterior: "Ant", btnSiguiente: "Sig", btnCsvMes: "Exportar Mes", titleResumenAnual: "Resumen Anual",
-        titleTotalCatAnio: "Total Año", btnCsvAnio: "Exportar Año", menuConfig: "Config",
+        btnAnterior: "Ant", btnSiguiente: "Sig", btnCsvMes: "Excel", titleResumenAnual: "Resumen Anual",
+        titleTotalCatAnio: "Total Año", btnCsvAnio: "Excel", menuConfig: "Config",
         lblMoneda: "Moneda:", lblIdioma: "Idioma:", titleCategorias: "Categorías", colNombre: "Nombre", colAccion: "Acción",
         phNueva: "Nueva Categoría", titleDatos: "Datos", btnBackup: "⬆️ Backup", btnImportar: "⬇️ Importar",
         btnBorrarTodo: "⚠️ Borrar Todo", titleEditar: "Editar", btnGuardar: "Guardar", btnBorrar: "Borrar", btnCancelar: "Cancelar",
@@ -555,7 +557,9 @@ const TRADUCTIONS = {
         btnCargado: "¡Cargado!" 
     },
     en: {
-        alertMissing: "Missing fields.", alertGuardado: "Saved!", confirmDelete: "Delete?",
+        alertMissing: "Missing fields.", alertGuardado: "Saved!",
+        alertMissingCat: "Select a category!",
+        confirmDelete: "Delete?",
         confirmDeleteAll: "DELETE ALL?", alertNoExport: "No data.", alertCSVEmpty: "Empty.",
         alertImportSuccess: (c) => `Imported ${c}.`, alertImportSuccessJSON: "Data OK!",
         alertImportErrorJSON: "File error.", alertCatNombreExiste: (n) => `"${n}" exists.`,
@@ -599,11 +603,15 @@ let listaDetalleActual = [];
 let paginaActualGastosMes = 1; 
 let smartValorInput = "0";
 
+// Paleta global para Chart y PDF
+const PALETA_COLORES = ['#2563EB', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#64748B'];
+
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels); 
     cargarDatos();
     inicializarUI();
     inicializarListenerTecladoFisico();
+    inicializarScrollCategoriasMouse();
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 });
 
@@ -619,6 +627,16 @@ function inicializarListenerTecladoFisico() {
         else if (e.key === 'Enter') { 
             e.preventDefault(); 
             agregarGasto(); 
+        }
+    });
+}
+
+function inicializarScrollCategoriasMouse() {
+    const slider = document.getElementById('smartCategories');
+    slider.addEventListener('wheel', (evt) => {
+        if (!slider.classList.contains('expanded')) { 
+            evt.preventDefault();
+            slider.scrollLeft += evt.deltaY;
         }
     });
 }
@@ -674,37 +692,44 @@ document.getElementById('gastoFecha').addEventListener('change', function(e) {
     }
 });
 
-function renderizarCategoriasSmart() {
+function renderizarCategoriasSmart(seleccionada = null) {
     const container = document.getElementById('smartCategories');
     container.innerHTML = '';
     container.classList.remove('expanded');
     
+    if(!seleccionada) seleccionada = document.getElementById('gastoCategoria').value;
+
     const freq = {};
     gastos.forEach(g => freq[g.categoria] = (freq[g.categoria] || 0) + 1);
-    const catsOrdenadas = [...config.categorias].sort((a,b) => (freq[b]||0) - (freq[a]||0));
+    
+    let catsOrdenadas = [...config.categorias].sort((a,b) => (freq[b]||0) - (freq[a]||0));
+    
+    if (seleccionada && catsOrdenadas.includes(seleccionada)) {
+        catsOrdenadas = catsOrdenadas.filter(c => c !== seleccionada);
+        catsOrdenadas.unshift(seleccionada);
+    }
     
     catsOrdenadas.forEach(cat => {
         const btn = document.createElement('div');
         btn.className = 'cat-btn';
+        if (cat === seleccionada) btn.classList.add('selected');
         btn.textContent = cat;
+        
         btn.onclick = () => {
-            seleccionarCategoriaSmart(cat, btn);
-            container.classList.remove('expanded'); // Contraer al seleccionar manual
+            seleccionarCategoriaSmart(cat);
+            container.classList.remove('expanded'); 
         };
         btn.dataset.category = cat;
         container.appendChild(btn);
     });
-
-    if(catsOrdenadas.length > 0) seleccionarCategoriaSmart(catsOrdenadas[0], container.children[0]);
 }
 
-function seleccionarCategoriaSmart(cat, element) {
+function seleccionarCategoriaSmart(cat) {
     document.getElementById('gastoCategoria').value = cat;
-    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
-    if(element) {
-        element.classList.add('selected');
-        element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-    }
+    renderizarCategoriasSmart(cat);
+    
+    const container = document.getElementById('smartCategories');
+    container.scrollLeft = 0; 
 }
 
 function predecirCategoria() {
@@ -712,7 +737,11 @@ function predecirCategoria() {
     const container = document.getElementById('smartCategories');
     
     if(texto.length < 2) {
-        if(texto.length === 0) container.classList.add('expanded');
+        if(texto.length === 0) {
+            container.classList.add('expanded');
+            document.getElementById('gastoCategoria').value = "";
+            renderizarCategoriasSmart(null); 
+        }
         return;
     }
 
@@ -720,12 +749,11 @@ function predecirCategoria() {
 
     if (coincidencia) {
         const catPredicha = coincidencia.categoria;
-        const btn = document.querySelector(`.cat-btn[data-category="${catPredicha}"]`);
-        if (btn) {
-            seleccionarCategoriaSmart(catPredicha, btn);
-            container.classList.remove('expanded'); 
-        }
+        seleccionarCategoriaSmart(catPredicha);
+        container.classList.remove('expanded'); 
     } else {
+        document.getElementById('gastoCategoria').value = "";
+        renderizarCategoriasSmart(null); 
         container.classList.add('expanded');
     }
 }
@@ -905,24 +933,24 @@ function renderizarTablaDetallePaginada(tablaId, totalId, labelInfoId) {
 
 function agregarGasto() {
     const fecha = document.getElementById('gastoFecha').value;
-    const cat = document.getElementById('gastoCategoria').value;
+    const cat = document.getElementById('gastoCategoria').value; 
     const desc = sanitizar(document.getElementById('gastoDescripcion').value.trim());
     const val = parsearValor(document.getElementById('gastoValor').value);
     const pago = document.querySelector('input[name="tipoPago"]:checked').value;
 
-    if (!fecha || !cat || !desc || isNaN(val) || val <= 0) return mostrarToast(TRADUCTIONS[config.idioma].alertMissing, 'error');
+    if (!cat) return mostrarToast(TRADUCTIONS[config.idioma].alertMissingCat, 'error');
+    if (!fecha || !desc || isNaN(val) || val <= 0) return mostrarToast(TRADUCTIONS[config.idioma].alertMissing, 'error');
 
     gastos.push({ id: Date.now(), fecha, categoria: cat, descripcion: desc, valor: val, tipoPago: pago });
     gastos.sort(sortData);
     guardarGastos();
     inicializarSelectoresMesAnio();
 
-    // Resetear UI Smart
     document.getElementById('gastoDescripcion').value = '';
     smartValorInput = "0";
     actualizarDisplayValor();
     
-    renderizarCategoriasSmart();
+    renderizarCategoriasSmart(null); 
 
     const btn = document.getElementById('btnAddGasto');
     const originalHTML = btn.innerHTML;
@@ -937,12 +965,12 @@ function agregarGasto() {
 
     paginaActualGastosMes = 1; 
     renderizarGastosDelMes();
+    
+    actualizarResumenMensual();
+    actualizarResumenHistorico();
 }
 
 function actualizarResumenMensual() {
-    document.getElementById('detalleMensual').style.display = 'none';
-    document.getElementById('chartMensualContainer').style.display = 'block';
-    
     const mes = document.getElementById('filtroMes').value;
     const anio = document.getElementById('filtroAnioMensual').value;
     let lista = gastos.filter(g => { const [y, m] = g.fecha.split('-'); return parseInt(y) == anio && parseInt(m) == mes; });
@@ -978,8 +1006,6 @@ function actualizarResumenMensual() {
 
 function actualizarResumenHistorico(resetCategoria = false) {
     if (resetCategoria) filtroCategoriaHistorico = 'TODOS';
-    document.getElementById('detalleHistorico').style.display = 'none';
-    document.getElementById('chartHistoricoContainer').style.display = (filtroCategoriaHistorico === 'TODOS') ? 'block' : 'none';
     
     const anio = document.getElementById('filtroAnioHistorico').value;
     const listaAnio = gastos.filter(g => g.fecha.startsWith(anio));
@@ -1029,7 +1055,8 @@ function renderizarTablaResumen(lista, tablaId, totalId, onRowClick) {
     
     Object.entries(cats).sort((a,b)=>b[1]-a[1]).forEach(([cat, val]) => {
         const tr = document.createElement('tr');
-        const pct = total>0 ? Math.round((val/total)*100) : 0;
+        // CAMBIO SOLICITADO: PORCENTAJE CON 1 DECIMAL
+        const pct = total>0 ? ((val/total)*100).toFixed(1) : '0.0';
         if (tablaId === 'tablaResumenHistorico' && cat === filtroCategoriaHistorico) {
             tr.style.backgroundColor = '#EFF6FF'; tr.style.fontWeight = 'bold';
         }
@@ -1092,12 +1119,24 @@ function guardarEdicionDesdeModal() {
         g.valor = parsearValor(document.getElementById('modalValor').value);
         g.tipoPago = document.querySelector('input[name="modalTipoPago"]:checked').value;
         gastos.sort(sortData);
-        guardarGastos(); location.reload();
+        guardarGastos(); 
+        
+        actualizarResumenMensual();
+        actualizarResumenHistorico();
+        renderizarGastosDelMes();
+        cerrarModal(); 
     }
 }
 function confirmarEliminarGasto() {
     mostrarModalConfirmacion(TRADUCTIONS[config.idioma].confirmDelete, () => {
-        gastos = gastos.filter(g => g.id !== gastoEditandoId); guardarGastos(); location.reload();
+        gastos = gastos.filter(g => g.id !== gastoEditandoId); 
+        guardarGastos(); 
+        
+        actualizarResumenMensual();
+        actualizarResumenHistorico();
+        renderizarGastosDelMes();
+        cerrarModal();
+        renderizarCategoriasSmart(); 
     });
 }
 
@@ -1225,11 +1264,14 @@ function filtrarTablaDetalle(inputId, tableId) {
     }
 }
 
-function generarYCompartirCSV(tipo) {
-    let nombreArchivo = '';
+// --- FUNCIÓN GENERAR PDF ACTUALIZADA (CAMBIO SOLICITADO) ---
+function generarPDF(tipo) {
+    const { jsPDF } = window.jspdf;
+    
     let datosFiltrados = [];
     let titulo = '';
-
+    let canvasId = '';
+    
     if (tipo === 'mensual') {
         const mes = document.getElementById('filtroMes').value;
         const anio = document.getElementById('filtroAnioMensual').value;
@@ -1239,13 +1281,13 @@ function generarYCompartirCSV(tipo) {
             const [y, m] = g.fecha.split('-');
             return parseInt(y) == anio && parseInt(m) == mes;
         });
-        nombreArchivo = `Gastos_${nombreMes}_${anio}`;
         titulo = `Reporte ${nombreMes} ${anio}`;
+        canvasId = 'chartMensualCanvas';
     } else {
         const anio = document.getElementById('filtroAnioHistorico').value;
         datosFiltrados = gastos.filter(g => g.fecha.startsWith(anio));
-        nombreArchivo = `Gastos_${anio}`;
-        titulo = `Reporte ${anio}`;
+        titulo = `Reporte Anual ${anio}`;
+        canvasId = 'chartHistoricoCanvas';
     }
 
     if (datosFiltrados.length === 0) {
@@ -1253,42 +1295,111 @@ function generarYCompartirCSV(tipo) {
         return;
     }
 
-    let csvContent = "\uFEFF"; 
-    csvContent += "Fecha;Categoría;Descripción;Valor;TipoPago\n";
+    const doc = new jsPDF();
+    
+    doc.setFontSize(18);
+    doc.setTextColor(30, 58, 138); 
+    doc.text("Control de Gastos", 14, 20);
+    
+    doc.setFontSize(14);
+    doc.setTextColor(100);
+    doc.text(titulo, 14, 30);
+    
+    doc.setFontSize(10);
+    doc.text(`Generado: ${new Date().toLocaleDateString()}`, 14, 36);
 
+    let total = 0;
+    const cats = {};
     datosFiltrados.forEach(g => {
-        let desc = g.descripcion.replace(/;/g, ","); 
-        let valor = g.valor.toString();
-        if (config.idioma === 'es') {
-            valor = valor.replace('.', ',');
-        }
-        csvContent += `${g.fecha};${g.categoria};${desc};${valor};${g.tipoPago}\n`;
+        total += g.valor;
+        cats[g.categoria] = (cats[g.categoria] || 0) + g.valor;
+    });
+    
+    doc.setFillColor(241, 245, 249);
+    doc.rect(14, 42, 180, 15, 'F');
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text(`TOTAL GASTADO: ${formatearMoneda(total)}`, 20, 51);
+
+    const canvas = document.getElementById(canvasId);
+    if(canvas) {
+        const imgData = canvas.toDataURL("image/png");
+        doc.addImage(imgData, 'PNG', 15, 65, 70, 70); 
+        
+        let yLegend = 65;
+        const xLegend = 95;
+        const catsSorted = Object.entries(cats).sort((a,b) => b[1] - a[1]);
+        
+        doc.setFontSize(10);
+        catsSorted.forEach(([cat, val], index) => {
+            const color = PALETA_COLORES[index % PALETA_COLORES.length];
+            const pct = ((val/total)*100).toFixed(1) + '%';
+            doc.setFillColor(color);
+            doc.rect(xLegend, yLegend, 4, 4, 'F');
+            doc.setTextColor(0);
+            doc.text(`${cat}: ${formatearMoneda(val)} (${pct})`, xLegend + 6, yLegend + 3);
+            yLegend += 7; 
+        });
+    }
+
+    const tableBody = datosFiltrados.map(g => [g.fecha, g.categoria, g.descripcion, formatearMoneda(g.valor), g.tipoPago]);
+
+    doc.autoTable({
+        startY: 145, 
+        head: [['Fecha', 'Categoría', 'Descripción', 'Valor', 'Pago']],
+        body: tableBody,
+        theme: 'grid',
+        headStyles: { fillColor: [71, 85, 105] }, 
+        styles: { fontSize: 9 },
+        // CAMBIO: Columna Valor más ancha
+        columnStyles: { 3: { halign: 'right', cellWidth: 25 } } 
     });
 
-    const now = new Date();
-    const timestamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}`;
-    const finalFileName = `${nombreArchivo}_${timestamp}.csv`;
+    let finalY = doc.lastAutoTable.finalY + 15; 
+    if (finalY > 270) { doc.addPage(); finalY = 20; }
 
-    const file = new File([new Blob([csvContent], {type: 'text/csv;charset=utf-8;'})], finalFileName, {type: 'text/csv'});
+    doc.setFontSize(14);
+    doc.setTextColor(30, 58, 138);
+    doc.text("Detalle por Categoría", 14, finalY);
+    finalY += 8;
 
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(file);
-    a.download = finalFileName;
-    a.click();
+    const expensesByCat = {};
+    datosFiltrados.forEach(g => {
+        if (!expensesByCat[g.categoria]) expensesByCat[g.categoria] = [];
+        expensesByCat[g.categoria].push(g);
+    });
 
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        setTimeout(async () => {
-            try {
-                await navigator.share({
-                    files: [file],
-                    title: 'Control de Gastos',
-                    text: titulo
-                });
-            } catch (error) {
-                console.log('Compartir cancelado o no soportado');
-            }
-        }, 500);
-    }
+    const sortedCats = Object.keys(cats).sort((a,b) => cats[b] - cats[a]);
+
+    sortedCats.forEach((cat, index) => {
+        const subtotal = cats[cat];
+        const items = expensesByCat[cat];
+        const colorHex = PALETA_COLORES[index % PALETA_COLORES.length];
+        
+        if (finalY > 260) { doc.addPage(); finalY = 20; }
+        
+        doc.setFontSize(11);
+        doc.setTextColor(0);
+        doc.text(`${cat} (Total: ${formatearMoneda(subtotal)})`, 14, finalY);
+        
+        const catBody = items.map(g => [g.fecha, g.descripcion, formatearMoneda(g.valor), g.tipoPago]);
+        
+        doc.autoTable({
+            startY: finalY + 3,
+            head: [['Fecha', 'Descripción', 'Valor', 'Pago']],
+            body: catBody,
+            theme: 'grid',
+            headStyles: { fillColor: colorHex }, 
+            styles: { fontSize: 9 },
+            // CAMBIO: Columna Valor más ancha aquí también
+            columnStyles: { 2: { halign: 'right', cellWidth: 25 } },
+            margin: { left: 14 }
+        });
+        
+        finalY = doc.lastAutoTable.finalY + 10; 
+    });
+
+    doc.save(`${titulo.replace(/ /g, '_')}.pdf`);
 }
 
 async function compartirBackupJSON() {

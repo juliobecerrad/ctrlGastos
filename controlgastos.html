@@ -377,7 +377,7 @@
         
         <div class="export-buttons-container">
             <button class="btn btn-secondary" id="btnExportMes" onclick="generarYCompartirCSV('mensual')" style="flex:1;">
-                <i class="fas fa-file-csv" style="color: #10B981; margin-right: 5px;"></i> <span data-i18n="btnCsvMes">Excel</span>
+                <i class="fas fa-file-excel" style="color: #10B981; margin-right: 5px;"></i> <span data-i18n="btnCsvMes">Excel</span>
             </button> 
             <button class="btn btn-secondary" onclick="generarPDF('mensual')" style="flex:1;">
                 <i class="fas fa-file-pdf" style="color: #EF4444; margin-right: 5px;"></i> PDF
@@ -425,7 +425,7 @@
         
         <div class="export-buttons-container">
             <button class="btn btn-secondary" id="btnExportYear" onclick="generarYCompartirCSV('historico')" style="flex:1;">
-                <i class="fas fa-file-csv" style="color: #10B981; margin-right: 5px;"></i> <span data-i18n="btnCsvAnio">Excel</span>
+                <i class="fas fa-file-excel" style="color: #10B981; margin-right: 5px;"></i> <span data-i18n="btnCsvAnio">Excel</span>
             </button> 
             <button class="btn btn-secondary" onclick="generarPDF('historico')" style="flex:1;">
                 <i class="fas fa-file-pdf" style="color: #EF4444; margin-right: 5px;"></i> PDF
@@ -1055,7 +1055,7 @@ function renderizarTablaResumen(lista, tablaId, totalId, onRowClick) {
     
     Object.entries(cats).sort((a,b)=>b[1]-a[1]).forEach(([cat, val]) => {
         const tr = document.createElement('tr');
-        // CAMBIO SOLICITADO: PORCENTAJE CON 1 DECIMAL
+        // CAMBIO: Porcentaje con 1 decimal (.toFixed(1))
         const pct = total>0 ? ((val/total)*100).toFixed(1) : '0.0';
         if (tablaId === 'tablaResumenHistorico' && cat === filtroCategoriaHistorico) {
             tr.style.backgroundColor = '#EFF6FF'; tr.style.fontWeight = 'bold';
@@ -1264,7 +1264,73 @@ function filtrarTablaDetalle(inputId, tableId) {
     }
 }
 
-// --- FUNCIÓN GENERAR PDF ACTUALIZADA (CAMBIO SOLICITADO) ---
+function generarYCompartirCSV(tipo) {
+    let nombreArchivo = '';
+    let datosFiltrados = [];
+    let titulo = '';
+
+    if (tipo === 'mensual') {
+        const mes = document.getElementById('filtroMes').value;
+        const anio = document.getElementById('filtroAnioMensual').value;
+        const nombreMes = MONTH_NAMES_FULL[config.idioma][mes - 1];
+        
+        datosFiltrados = gastos.filter(g => {
+            const [y, m] = g.fecha.split('-');
+            return parseInt(y) == anio && parseInt(m) == mes;
+        });
+        nombreArchivo = `Gastos_${nombreMes}_${anio}`;
+        titulo = `Reporte ${nombreMes} ${anio}`;
+    } else {
+        const anio = document.getElementById('filtroAnioHistorico').value;
+        datosFiltrados = gastos.filter(g => g.fecha.startsWith(anio));
+        nombreArchivo = `Gastos_${anio}`;
+        titulo = `Reporte ${anio}`;
+    }
+
+    if (datosFiltrados.length === 0) {
+        mostrarToast(TRADUCTIONS[config.idioma].alertNoExport, 'error');
+        return;
+    }
+
+    let csvContent = "\uFEFF"; 
+    csvContent += "Fecha;Categoría;Descripción;Valor;TipoPago\n";
+
+    datosFiltrados.forEach(g => {
+        let desc = g.descripcion.replace(/;/g, ","); 
+        let valor = g.valor.toString();
+        if (config.idioma === 'es') {
+            valor = valor.replace('.', ',');
+        }
+        csvContent += `${g.fecha};${g.categoria};${desc};${valor};${g.tipoPago}\n`;
+    });
+
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}`;
+    const finalFileName = `${nombreArchivo}_${timestamp}.csv`;
+
+    const file = new File([new Blob([csvContent], {type: 'text/csv;charset=utf-8;'})], finalFileName, {type: 'text/csv'});
+
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(file);
+    a.download = finalFileName;
+    a.click();
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        setTimeout(async () => {
+            try {
+                await navigator.share({
+                    files: [file],
+                    title: 'Control de Gastos',
+                    text: titulo
+                });
+            } catch (error) {
+                console.log('Compartir cancelado o no soportado');
+            }
+        }, 500);
+    }
+}
+
+// --- FUNCIÓN GENERAR PDF ACTUALIZADA (COLUMNA ANCHA) ---
 function generarPDF(tipo) {
     const { jsPDF } = window.jspdf;
     
@@ -1351,8 +1417,8 @@ function generarPDF(tipo) {
         theme: 'grid',
         headStyles: { fillColor: [71, 85, 105] }, 
         styles: { fontSize: 9 },
-        // CAMBIO: Columna Valor más ancha
-        columnStyles: { 3: { halign: 'right', cellWidth: 25 } } 
+        // CAMBIO: Columna Valor más ancha (40)
+        columnStyles: { 3: { halign: 'right', cellWidth: 40 } } 
     });
 
     let finalY = doc.lastAutoTable.finalY + 15; 
@@ -1391,8 +1457,8 @@ function generarPDF(tipo) {
             theme: 'grid',
             headStyles: { fillColor: colorHex }, 
             styles: { fontSize: 9 },
-            // CAMBIO: Columna Valor más ancha aquí también
-            columnStyles: { 2: { halign: 'right', cellWidth: 25 } },
+            // CAMBIO: Columna Valor más ancha (40)
+            columnStyles: { 2: { halign: 'right', cellWidth: 40 } },
             margin: { left: 14 }
         });
         
@@ -1439,11 +1505,10 @@ function actualizarGraficoCategorias(l, c, i) {
     
     if(window[i]) window[i].destroy();
     
-    const paleta = ['#2563EB', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#64748B'];
-
+    // PALETA GLOBAL USADA PARA CHART Y PDF
     window[i] = new Chart(ctx, { 
         type:'doughnut', 
-        data:{ labels:Object.keys(d), datasets:[{ data:Object.values(d), backgroundColor: paleta, borderWidth:1 }] }, 
+        data:{ labels:Object.keys(d), datasets:[{ data:Object.values(d), backgroundColor: PALETA_COLORES, borderWidth:1 }] }, 
         options:{
             responsive:true, maintainAspectRatio:false, 
             plugins:{

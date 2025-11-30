@@ -194,12 +194,12 @@
         /* === ESTILOS EXCLUSIVOS PARA PANTALLA DE GASTO (EQUILIBRADO) === */
         /* ============================================================== */
         
-        #gasto { padding: 15px; } /* Restaurado padding original */
+        #gasto { padding: 15px; } 
 
         .input-card {
             background-color: var(--bg-card);
             border-radius: 16px;
-            padding: 15px; /* Restaurado padding original */
+            padding: 15px; 
             box-shadow: var(--shadow-md);
             margin-bottom: 15px;
         }
@@ -226,7 +226,7 @@
 
         .payment-pills-row {
             display: flex; gap: 6px; 
-            margin: 4px 0 8px 0; /* Márgenes originales */
+            margin: 4px 0 8px 0; 
         }
         .payment-pills-row input { display: none; }
         .payment-pills-row label {
@@ -241,16 +241,15 @@
             color: var(--primary-color); font-weight: bold;
         }
 
-        /* --- DISPLAY COMPACTO (LA CLAVE DEL CAMBIO) --- */
         .smart-value-display {
-            font-size: 2.2em; /* Reducido de 2.8 a 2.2 para ganar espacio */
+            font-size: 2.2em; /* Equilibrado */
             font-weight: bold; color: var(--primary-color);
             background-color: #F8FAFC; border: 1px solid #E2E8F0; 
             border-radius: 12px;
             padding: 2px 15px; 
             margin: 0; letter-spacing: 0.5px;
             display: flex; justify-content: space-between; align-items: center; 
-            min-height: 50px; /* Reducido de 60 a 50 */
+            min-height: 50px; 
         }
         
         .btn-backspace-inline {
@@ -265,7 +264,7 @@
             grid-auto-flow: column; 
             gap: 6px; 
             overflow-x: auto; overflow-y: hidden;
-            max-height: 100px; /* Altura controlada */
+            max-height: 100px; 
             padding: 2px 0;
             margin-bottom: 5px; 
             scrollbar-width: none; -ms-overflow-style: none;
@@ -360,9 +359,11 @@
                         <i class="far fa-calendar-alt"></i> <span id="smartFechaTexto">Hoy</span>
                     </button>
                     <input type="date" id="gastoFecha" style="display:none;">
-                    
-                    <input type="text" id="gastoDescripcion" class="smart-desc-input" placeholder="¿En qué gastaste?" autocomplete="off" list="sugerenciasDescripciones" onkeyup="predecirCategoria()">
-                    <datalist id="sugerenciasDescripciones"></datalist>
+                </div>
+
+                <div class="smart-value-display">
+                    <span id="smartValueDisplay" style="width: 100%; text-align: right; margin-right: 10px;">0.00</span>
+                    <button class="btn-backspace-inline" onclick="tecladoPress('back')"><i class="fas fa-backspace"></i></button>
                 </div>
 
                 <div class="payment-pills-row">
@@ -373,30 +374,30 @@
                     <input type="radio" id="pagoTransferencia" name="tipoPago" value="Transferencia">
                     <label for="pagoTransferencia"><i class="fas fa-mobile-alt"></i> <span data-i18n="lblTransf">Transf.</span></label>
                 </div>
-
-                <div class="smart-value-display">
-                    <span id="smartValueDisplay" style="width: 100%; text-align: right; margin-right: 10px;">0.00</span>
-                    <button class="btn-backspace-inline" onclick="tecladoPress('back')"><i class="fas fa-backspace"></i></button>
-                </div>
+                
+                <input type="text" id="gastoDescripcion" class="smart-desc-input" placeholder="¿En qué gastaste?" autocomplete="off" list="sugerenciasDescripciones" onkeyup="predecirCategoria()">
+                <datalist id="sugerenciasDescripciones"></datalist>
                 
                 <div id="smartCategories" class="smart-cat-grid"></div>
                 <input type="hidden" id="gastoCategoria" value=""> 
 
-                <div class="keypad-grid">
-                    <button class="key-btn" onclick="tecladoPress('1')">1</button>
-                    <button class="key-btn" onclick="tecladoPress('2')">2</button>
-                    <button class="key-btn" onclick="tecladoPress('3')">3</button>
-                    <button class="key-btn" onclick="tecladoPress('4')">4</button>
-                    <button class="key-btn" onclick="tecladoPress('5')">5</button>
-                    <button class="key-btn" onclick="tecladoPress('6')">6</button>
-                    <button class="key-btn" onclick="tecladoPress('7')">7</button>
-                    <button class="key-btn" onclick="tecladoPress('8')">8</button>
-                    <button class="key-btn" onclick="tecladoPress('9')">9</button>
-                    <button class="key-btn" onclick="tecladoPress('.')">.</button>
-                    <button class="key-btn" onclick="tecladoPress('0')">0</button>
-                    <button class="key-btn key-btn-success" id="btnAddGasto" onclick="agregarGasto()">
-                        <i class="fas fa-check"></i>
-                    </button>
+                <div id="keypadContainer">
+                    <div class="keypad-grid">
+                        <button class="key-btn" onclick="tecladoPress('1')">1</button>
+                        <button class="key-btn" onclick="tecladoPress('2')">2</button>
+                        <button class="key-btn" onclick="tecladoPress('3')">3</button>
+                        <button class="key-btn" onclick="tecladoPress('4')">4</button>
+                        <button class="key-btn" onclick="tecladoPress('5')">5</button>
+                        <button class="key-btn" onclick="tecladoPress('6')">6</button>
+                        <button class="key-btn" onclick="tecladoPress('7')">7</button>
+                        <button class="key-btn" onclick="tecladoPress('8')">8</button>
+                        <button class="key-btn" onclick="tecladoPress('9')">9</button>
+                        <button class="key-btn" onclick="tecladoPress('.')">.</button>
+                        <button class="key-btn" onclick="tecladoPress('0')">0</button>
+                        <button class="key-btn key-btn-success" id="btnAddGasto" onclick="agregarGasto()">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    </div>
                 </div>
                 <input type="hidden" id="gastoValor">
             </div>
@@ -912,8 +913,33 @@ function inicializarUI() {
     mostrarPantalla('gasto', document.querySelector('.nav-tabs button.active'));
     
     // ==========================================================
-    // === LÓGICA DE CIERRE INTELIGENTE DEL GRID DE CATEGORÍAS ===
+    // === LÓGICA DE CIERRE INTELIGENTE DEL GRID DE CATEGORÍAS Y TECLADO ===
     // ==========================================================
+    
+    // 1. CONTROL DINÁMICO DEL TECLADO AL ESCRIBIR
+    const descInput = document.getElementById('gastoDescripcion');
+    const keypadContainer = document.getElementById('keypadContainer');
+    
+    descInput.addEventListener('focus', () => {
+        keypadContainer.style.display = 'none';
+    });
+    
+    descInput.addEventListener('blur', () => {
+        setTimeout(() => {
+            keypadContainer.style.display = 'block';
+        }, 150);
+    });
+
+    // --- NUEVA LÓGICA: DETECTAR SELECCIÓN DE SUGERENCIA ---
+    descInput.addEventListener('input', function(e) {
+       // Si el valor actual coincide exactamente con alguna de las sugerencias guardadas
+       if (descripcionesUsadas.includes(this.value)) {
+           this.blur(); // Fuerza el cierre del teclado nativo y activa el blur (mostrando tu teclado)
+       }
+    });
+    // -------------------------------------------------------
+
+    // 2. CIERRE INTELIGENTE DE CATEGORÍAS
     window.onclick = (e) => {
         // Manejo de Modales
         if (e.target == document.getElementById('modalEdicion')) cerrarModal();
@@ -925,16 +951,10 @@ function inicializarUI() {
         const clickInGrid = e.target.closest('.smart-cat-grid') || e.target.closest('.cat-btn');
         const clickInDesc = e.target.closest('#gastoDescripcion');
         
-        // Verificamos si tenemos una categoría seleccionada O si la descripción está vacía
         const hasCategory = document.getElementById('gastoCategoria').value !== "";
         const hasDescription = document.getElementById('gastoDescripcion').value.trim().length > 0;
 
-        // Si el clic fue FUERA del grid Y FUERA del input de descripción
         if (!clickInGrid && !clickInDesc) {
-            // Solo cerramos si:
-            // 1. Ya hay categoría seleccionada (es seguro cerrar).
-            // 2. O la descripción está vacía (el usuario está divagando sin escribir).
-            // PERO SI: No hay categoría Y hay descripción escrita -> MANTENER ABIERTO.
             if (hasCategory || !hasDescription) {
                 grid.classList.remove('expanded');
             }

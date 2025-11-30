@@ -163,11 +163,11 @@
         .nav-tabs button i { font-size: 1.4em; margin-bottom: 2px; }
         .nav-tabs button.active { color: var(--nav-active); font-weight: bold; }
 
-        #detalleMensual, #detalleHistorico, .chart-container {
+        .chart-container {
             background-color: var(--bg-card); padding: 15px; border-radius: 8px;
             box-shadow: var(--shadow-sm); margin-top: 20px; border: 1px solid var(--border-color);
+            height: 350px; position: relative;
         }
-        .chart-container { height: 350px; position: relative; }
         .filtro-container-inline { display: flex; gap: 10px; margin-bottom: 8px; }
         
         .pagination-controls {
@@ -177,10 +177,11 @@
         }
         .pagination-controls button { width: auto; margin: 0; padding: 4px 10px; font-size: 0.9em; }
         
-        .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); padding-top: 60px; }
+        .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); padding-top: 40px; }
         .modal-content {
-            background-color: var(--bg-card); margin: 5% auto; padding: 20px;
+            background-color: var(--bg-card); margin: 0 auto; padding: 20px;
             border: 1px solid var(--secondary-color); width: 90%; max-width: 400px; border-radius: 10px;
+            max-height: 85vh; overflow-y: auto; 
         }
         .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
         .modal-botones-row { display: flex; gap: 10px; margin-top: 15px; }
@@ -191,7 +192,7 @@
         #toast.error { background-color: var(--danger-color); }
 
         /* ============================================================== */
-        /* === ESTILOS EXCLUSIVOS PARA PANTALLA DE GASTO (OPTIMIZADO) === */
+        /* === ESTILOS EXCLUSIVOS PARA PANTALLA DE GASTO === */
         /* ============================================================== */
         
         #gasto { padding: 15px; } 
@@ -208,24 +209,21 @@
         
         #gasto h2 { font-size: 1.1em; margin: 0 0 10px 0; text-align: left; }
         
-        /* FILA COMBINADA FECHA + VALOR */
         .row-date-val {
             display: flex; gap: 8px; align-items: center; margin-bottom: 5px;
         }
 
-        /* Botón Fecha (Estilo Pill) */
         .fecha-pill {
             background-color: var(--bg-body); 
             border: 1px solid var(--border-color);
             color: var(--primary-color); font-weight: 600; padding: 0 12px;
             border-radius: 12px; white-space: nowrap; cursor: pointer;
             display: flex; align-items: center; gap: 6px; font-size: 0.85em;
-            height: 42px; /* Misma altura que el display */
+            height: 42px;
         }
         
-        /* DISPLAY DE VALOR (Compacto) */
         .smart-value-display {
-            flex-grow: 1; /* Ocupa el resto del ancho */
+            flex-grow: 1; 
             font-size: 2.2em; 
             font-weight: bold; color: var(--primary-color);
             background-color: #F8FAFC; border: 1px solid #E2E8F0; 
@@ -233,7 +231,7 @@
             padding: 0 12px; 
             margin: 0; letter-spacing: 0.5px;
             display: flex; justify-content: space-between; align-items: center; 
-            min-height: 42px; /* Altura compacta */
+            min-height: 42px; 
         }
         
         .btn-backspace-inline {
@@ -265,7 +263,6 @@
         }
         .smart-desc-input:focus { outline: none; border-color: var(--primary-color); border-bottom-style: solid; }
         
-        /* Grid Categorías */
         .smart-cat-grid {
             display: grid;
             grid-template-rows: repeat(2, 1fr); 
@@ -313,7 +310,6 @@
 
         #contenedorUltimosGastos { display: none; margin-top: 15px; animation: fadeIn 0.3s ease; }
         
-        /* Ticket de Feedback */
         .last-action-card {
             background-color: var(--success-bg);
             border: 1px solid var(--success-border);
@@ -326,28 +322,10 @@
             animation: slideIn 0.3s ease-out;
             cursor: pointer;
         }
-        .last-action-icon {
-            font-size: 1.5em;
-            color: var(--success-text);
-        }
-        .last-action-details {
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
-        .last-action-title {
-            font-size: 0.75em;
-            color: var(--success-text);
-            text-transform: uppercase;
-            font-weight: bold;
-            opacity: 0.8;
-            margin-bottom: 2px;
-        }
-        .last-action-text {
-            font-size: 0.95em;
-            color: var(--text-main);
-            font-weight: 500;
-        }
+        .last-action-icon { font-size: 1.5em; color: var(--success-text); }
+        .last-action-details { display: flex; flex-direction: column; flex-grow: 1; }
+        .last-action-title { font-size: 0.75em; color: var(--success-text); text-transform: uppercase; font-weight: bold; opacity: 0.8; margin-bottom: 2px; }
+        .last-action-text { font-size: 0.95em; color: var(--text-main); font-weight: 500; }
         
     </style>
 </head>
@@ -357,7 +335,6 @@
     </div>
 
     <div id="gasto" class="pantalla activa">
-        
         <div class="input-card">
             <div id="formulario-gasto" class="smart-input-container">
                 <h2 data-i18n="titleIngresoGasto" style="display:none">Ingreso</h2> 
@@ -436,7 +413,6 @@
                 <button class="btn btn-secondary" onclick="cambiarPaginaPrincipal(1)">Sig</button>
             </div>
         </div>
-
     </div>
     
     <div id="mensual" class="pantalla">
@@ -461,20 +437,7 @@
             <tbody></tbody>
             <tfoot><tr><td data-i18n="lblTotal">TOTAL</td><td></td><td id="totalResumenMensual" class="gasto-valor"></td></tr></tfoot>
         </table>
-        <div id="detalleMensual">
-            <h3><span data-i18n="titleDetalle">Detalle</span>: <span id="detalleCategoriaMensual" style="color: var(--primary-color);"></span></h3>
-            <input type="text" id="buscarDetalleMensual" class="input-buscar" data-i18n-ph="phBuscar" placeholder="Buscar..." onkeyup="filtrarTablaDetalle('buscarDetalleMensual', 'tablaDetalleMensual')">
-            <table id="tablaDetalleMensual" class="tabla-gastos">
-                <thead><tr><th data-i18n="colFecha">Fecha</th><th data-i18n="colDesc">Descripción</th><th data-i18n="colValor">Valor</th></tr></thead>
-                <tbody></tbody>
-                <tfoot><tr><td colspan="2" data-i18n="lblTotalGeneral">TOTAL GENERAL</td><td id="totalDetalleMensual" class="gasto-valor"></td></tr></tfoot>
-            </table>
-            <div class="pagination-controls">
-                <button class="btn btn-secondary" onclick="cambiarPagina(-1)">Ant</button>
-                <span id="pageInfoMensual">Pág 1</span>
-                <button class="btn btn-secondary" onclick="cambiarPagina(1)">Sig</button>
-            </div>
-        </div>
+        
         <div class="chart-container" id="chartMensualContainer"><canvas id="chartMensualCanvas"></canvas></div>
         
         <div class="export-buttons-container">
@@ -508,20 +471,7 @@
             <tbody></tbody>
             <tfoot><tr><td data-i18n="lblTotal">TOTAL</td><td></td><td id="totalResumenHistorico" class="gasto-valor"></td></tr></tfoot>
         </table>
-        <div id="detalleHistorico">
-            <h3><span data-i18n="titleDetalle">Detalle</span>: <span id="detalleCategoriaHistorico" style="color: var(--primary-color);"></span></h3>
-            <input type="text" id="buscarDetalleHistorico" class="input-buscar" data-i18n-ph="phBuscar" placeholder="Buscar..." onkeyup="filtrarTablaDetalle('buscarDetalleHistorico', 'tablaDetalleHistorico')">
-            <table id="tablaDetalleHistorico" class="tabla-gastos">
-                <thead><tr><th data-i18n="colFecha">Fecha</th><th data-i18n="colDesc">Descripción</th><th data-i18n="colValor">Valor</th></tr></thead>
-                <tbody></tbody>
-                <tfoot><tr><td colspan="2" data-i18n="lblTotalGeneral">TOTAL GENERAL</td><td id="totalDetalleHistorico" class="gasto-valor"></td></tr></tfoot>
-            </table>
-            <div class="pagination-controls">
-                <button class="btn btn-secondary" onclick="cambiarPagina(-1)">Ant</button>
-                <span id="pageInfoHistorico">Pág 1</span>
-                <button class="btn btn-secondary" onclick="cambiarPagina(1)">Sig</button>
-            </div>
-        </div>
+        
         <div class="chart-container" id="chartHistoricoContainer"><canvas id="chartHistoricoCanvas"></canvas></div>
         <div class="chart-container" id="chartHistoricoMesesContainer"><canvas id="chartHistoricoMesesCanvas"></canvas></div>
         
@@ -565,6 +515,29 @@
         <input type="file" id="inputImportar" style="display: none;">
         <button class="btn btn-primary" id="btnImportarTrigger" onclick="document.getElementById('inputImportar').click()" data-i18n="btnImportar">⬇️ Importar</button>
         <button class="btn btn-danger" onclick="confirmarLimpiarTodosLosDatos()" data-i18n="btnBorrarTodo">⚠️ Borrar Todo</button>
+    </div>
+
+    <div id="modalDetalleGastos" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="cerrarModalDetalle()">&times;</span>
+            <h3 style="margin-top:0; margin-bottom:15px;"><span data-i18n="titleDetalle">Detalle</span>: <span id="modalDetalleCategoriaTitulo" style="color: var(--primary-color);"></span></h3>
+            
+            <input type="text" id="buscarDetalleModal" class="input-buscar" data-i18n-ph="phBuscar" placeholder="Buscar..." onkeyup="filtrarTablaDetalle('buscarDetalleModal', 'tablaDetalleModal')">
+            
+            <table id="tablaDetalleModal" class="tabla-gastos">
+                <thead><tr><th data-i18n="colFecha">Fecha</th><th data-i18n="colDesc">Descripción</th><th data-i18n="colValor">Valor</th></tr></thead>
+                <tbody></tbody>
+                <tfoot><tr><td colspan="2" data-i18n="lblTotalGeneral">TOTAL GENERAL</td><td id="totalDetalleModal" class="gasto-valor"></td></tr></tfoot>
+            </table>
+            
+            <div class="pagination-controls" id="paginacionDetalleModal">
+                <button class="btn btn-secondary" onclick="cambiarPagina(-1)">Ant</button>
+                <span id="pageInfoModal">Pág 1</span>
+                <button class="btn btn-secondary" onclick="cambiarPagina(1)">Sig</button>
+            </div>
+            
+            <button class="btn btn-secondary" style="margin-top:15px;" onclick="cerrarModalDetalle()" data-i18n="btnVolver">Volver</button>
+        </div>
     </div>
 
     <div id="modalEdicion" class="modal">
@@ -657,7 +630,8 @@ const TRADUCTIONS = {
         titleRenombrar: "Renombrar", titleConfirmar: "Confirmar", btnSi: "Sí", btnNo: "No",
         menuGasto: "Gasto", menuMes: "Mes", menuAnio: "Año", 
         btnCargado: "¡Cargado!",
-        msgGastoGuardado: "Gasto Guardado"
+        msgGastoGuardado: "Gasto Guardado",
+        btnVolver: "Volver"
     },
     en: {
         alertMissing: "Missing fields.", alertGuardado: "Saved!",
@@ -683,7 +657,8 @@ const TRADUCTIONS = {
         titleRenombrar: "Rename", titleConfirmar: "Confirm", btnSi: "Yes", btnNo: "No",
         menuGasto: "Expense", menuMes: "Month", menuAnio: "Year",
         btnCargado: "Loaded!",
-        msgGastoGuardado: "Expense Saved"
+        msgGastoGuardado: "Expense Saved",
+        btnVolver: "Go Back"
     }
 };
 
@@ -701,7 +676,7 @@ let chartHistoricoMesesInstance = null;
 let confirmCallback = null;
 let toastTimeout = null;
 
-const ITEMS_PER_PAGE = 25;
+const ITEMS_PER_PAGE = 15;
 let paginaActual = 1;
 let listaDetalleActual = [];
 let paginaActualGastosMes = 1; 
@@ -953,6 +928,7 @@ function inicializarUI() {
         if (e.target == document.getElementById('modalEdicion')) cerrarModal();
         if (e.target == document.getElementById('modalEdicionCategoria')) cerrarModalCategoria();
         if (e.target == document.getElementById('modalConfirmacion')) cerrarModalConfirmacion();
+        if (e.target == document.getElementById('modalDetalleGastos')) cerrarModalDetalle();
         
         // Manejo del Grid de Categorías
         const grid = document.getElementById('smartCategories');
@@ -991,11 +967,9 @@ function mostrarPantalla(id, btn) {
 
     if (id === 'gasto') renderizarGastosDelMes();
     if (id === 'mensual') {
-        document.getElementById('detalleMensual').style.display = 'none';
         document.getElementById('chartMensualContainer').style.display = 'block';
     }
     if (id === 'historico') {
-        document.getElementById('detalleHistorico').style.display = 'none';
         document.getElementById('chartHistoricoContainer').style.display = 'block';
         filtroCategoriaHistorico = 'TODOS';
         actualizarResumenHistorico();
@@ -1054,11 +1028,7 @@ function cambiarPagina(delta) {
     const nuevaPagina = paginaActual + delta;
     if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
         paginaActual = nuevaPagina;
-        const esMensual = document.getElementById('mensual').classList.contains('activa');
-        const tablaId = esMensual ? 'tablaDetalleMensual' : 'tablaDetalleHistorico';
-        const labelInfoId = esMensual ? 'pageInfoMensual' : 'pageInfoHistorico';
-        const totalId = esMensual ? 'totalDetalleMensual' : 'totalDetalleHistorico';
-        renderizarTablaDetallePaginada(tablaId, totalId, labelInfoId);
+        renderizarTablaDetallePaginada('tablaDetalleModal', 'totalDetalleModal', 'pageInfoModal');
     }
 }
 
@@ -1072,13 +1042,26 @@ function renderizarTablaDetallePaginada(tablaId, totalId, labelInfoId) {
     listaDetalleActual.forEach(g => totalGlobal += g.valor); 
     gastosPagina.forEach(g => {
         const tr = document.createElement('tr');
-        tr.onclick = () => abrirModalEdicion(g.id);
+        tr.onclick = () => {
+            cerrarModalDetalle(); 
+            abrirModalEdicion(g.id);
+        };
         const [y, m, d] = g.fecha.split('-');
         tr.innerHTML = `<td>${d}/${m}</td><td>${g.descripcion}</td><td class="gasto-valor">${formatearMoneda(g.valor)}</td>`;
         tbody.appendChild(tr);
     });
     document.getElementById(totalId).textContent = formatearMoneda(totalGlobal); 
     const totalPaginas = Math.ceil(listaDetalleActual.length / ITEMS_PER_PAGE) || 1;
+    
+    // --- LÓGICA DE OCULTAR PAGINACIÓN ---
+    const controlsContainer = document.getElementById(labelInfoId).parentElement;
+    if (totalPaginas <= 1) {
+        controlsContainer.style.display = 'none';
+    } else {
+        controlsContainer.style.display = 'flex';
+    }
+    // ------------------------------------
+
     const txtPag = config.idioma === 'es' ? 'Pág' : 'Page';
     const txtReg = config.idioma === 'es' ? 'reg' : 'rec';
     document.getElementById(labelInfoId).textContent = `${txtPag} ${paginaActual}/${totalPaginas} (${listaDetalleActual.length} ${txtReg})`;
@@ -1099,13 +1082,10 @@ function agregarGasto() {
     guardarGastos();
     inicializarSelectoresMesAnio();
 
-    // --- NUEVO FEEDBACK VISUAL ---
     const feedbackDiv = document.getElementById('feedbackUltimoGasto');
     const feedbackTxt = document.getElementById('feedbackTexto');
-    // Muestra: Categoría - Descripción: $Valor
     feedbackTxt.textContent = `${cat} - ${desc}: ${formatearMoneda(val)}`;
     feedbackDiv.style.display = 'flex';
-    // ----------------------------
 
     document.getElementById('gastoDescripcion').value = '';
     smartValorInput = "0";
@@ -1141,7 +1121,6 @@ function toggleTablaGastos() {
     } else {
         contenedor.style.display = 'block';
         btn.innerHTML = `⬆️ <span data-i18n="titleGastosMes">${TRADUCTIONS[config.idioma].titleGastosMes}</span>`;
-        // Scroll suave hacia abajo
         setTimeout(() => contenedor.scrollIntoView({behavior: "smooth"}), 100);
     }
 }
@@ -1165,18 +1144,7 @@ function actualizarResumenMensual() {
 
     if(filtroPagoMensual !== 'TODOS') lista = lista.filter(g => g.tipoPago === filtroPagoMensual);
     
-    renderizarTablaResumen(lista, 'tablaResumenMensual', 'totalResumenMensual', (cat) => {
-        document.getElementById('chartMensualContainer').style.display = 'none';
-        listaDetalleActual = lista.filter(g => g.categoria === cat);
-        paginaActual = 1;
-        document.getElementById('buscarDetalleMensual').value = '';
-        document.querySelector('#detalleMensual .pagination-controls').style.display = 'flex';
-        renderizarTablaDetallePaginada('tablaDetalleMensual', 'totalDetalleMensual', 'pageInfoMensual');
-        document.getElementById('detalleCategoriaMensual').textContent = cat;
-        const detalleDiv = document.getElementById('detalleMensual');
-        detalleDiv.style.display = 'block';
-        setTimeout(() => { detalleDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
-    });
+    renderizarTablaResumen(lista, 'tablaResumenMensual', 'totalResumenMensual');
     actualizarGraficoCategorias(lista, 'chartMensualCanvas', 'chartMensualInstance');
 }
 
@@ -1201,21 +1169,7 @@ function actualizarResumenHistorico(resetCategoria = false) {
     let listaFiltrada = [...listaAnio];
     if(filtroPagoHistorico !== 'TODOS') listaFiltrada = listaFiltrada.filter(g => g.tipoPago === filtroPagoHistorico);
     
-    renderizarTablaResumen(listaFiltrada, 'tablaResumenHistorico', 'totalResumenHistorico', (cat) => {
-        filtroCategoriaHistorico = cat;
-        actualizarResumenHistorico(false);
-        let sub = listaAnio.filter(g => g.categoria === cat);
-        if(filtroPagoHistorico !== 'TODOS') sub = sub.filter(g => g.tipoPago === filtroPagoHistorico);
-        listaDetalleActual = sub;
-        paginaActual = 1;
-        document.getElementById('buscarDetalleHistorico').value = '';
-        document.querySelector('#detalleHistorico .pagination-controls').style.display = 'flex';
-        renderizarTablaDetallePaginada('tablaDetalleHistorico', 'totalDetalleHistorico', 'pageInfoHistorico');
-        document.getElementById('detalleCategoriaHistorico').textContent = cat;
-        const detalleDiv = document.getElementById('detalleHistorico');
-        detalleDiv.style.display = 'block';
-        setTimeout(() => { detalleDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
-    });
+    renderizarTablaResumen(listaFiltrada, 'tablaResumenHistorico', 'totalResumenHistorico');
     
     let graficos = [...listaFiltrada];
     if(filtroCategoriaHistorico !== 'TODOS') graficos = graficos.filter(g => g.categoria === filtroCategoriaHistorico);
@@ -1223,7 +1177,7 @@ function actualizarResumenHistorico(resetCategoria = false) {
     actualizarGraficoGastosPorMes(graficos);
 }
 
-function renderizarTablaResumen(lista, tablaId, totalId, onRowClick) {
+function renderizarTablaResumen(lista, tablaId, totalId) {
     const tbody = document.querySelector(`#${tablaId} tbody`);
     tbody.innerHTML = '';
     const cats = {}; let total = 0;
@@ -1231,16 +1185,25 @@ function renderizarTablaResumen(lista, tablaId, totalId, onRowClick) {
     
     Object.entries(cats).sort((a,b)=>b[1]-a[1]).forEach(([cat, val]) => {
         const tr = document.createElement('tr');
-        // CAMBIO: Porcentaje con 1 decimal (.toFixed(1))
         const pct = total>0 ? ((val/total)*100).toFixed(1) : '0.0';
-        if (tablaId === 'tablaResumenHistorico' && cat === filtroCategoriaHistorico) {
-            tr.style.backgroundColor = '#EFF6FF'; tr.style.fontWeight = 'bold';
-        }
         tr.innerHTML = `<td>${cat}</td><td class="gasto-valor">${formatearMoneda(val)}</td><td class="col-porcentaje">${pct}%</td>`;
-        tr.onclick = () => onRowClick(cat);
+        tr.onclick = () => abrirModalDetalle(cat, lista);
         tbody.appendChild(tr);
     });
     document.getElementById(totalId).textContent = formatearMoneda(total);
+}
+
+function abrirModalDetalle(cat, listaOriginal) {
+    document.getElementById('modalDetalleCategoriaTitulo').textContent = cat;
+    listaDetalleActual = listaOriginal.filter(g => g.categoria === cat);
+    paginaActual = 1;
+    document.getElementById('buscarDetalleModal').value = '';
+    renderizarTablaDetallePaginada('tablaDetalleModal', 'totalDetalleModal', 'pageInfoModal');
+    document.getElementById('modalDetalleGastos').style.display = 'block';
+}
+
+function cerrarModalDetalle() {
+    document.getElementById('modalDetalleGastos').style.display = 'none';
 }
 
 function cargarConfig() {

@@ -191,7 +191,7 @@
         #toast.error { background-color: var(--danger-color); }
 
         /* ============================================================== */
-        /* === ESTILOS EXCLUSIVOS PARA PANTALLA DE GASTO (EQUILIBRADO) === */
+        /* === ESTILOS EXCLUSIVOS PARA PANTALLA DE GASTO (INTEGRADO) === */
         /* ============================================================== */
         
         #gasto { padding: 15px; } 
@@ -208,21 +208,36 @@
         
         #gasto h2 { font-size: 1.1em; margin: 0 0 10px 0; text-align: left; }
         
-        .smart-row-top { display: flex; gap: 8px; align-items: center; }
+        /* DISPLAY CON FECHA INTEGRADA */
+        .smart-value-display {
+            font-size: 2.2em; 
+            font-weight: bold; color: var(--primary-color);
+            background-color: #F8FAFC; border: 1px solid #E2E8F0; 
+            border-radius: 12px;
+            padding: 5px 12px; /* Un poco más de padding lateral */
+            margin: 0; letter-spacing: 0.5px;
+            display: flex; justify-content: space-between; align-items: center; 
+            min-height: 60px; /* Altura cómoda */
+        }
         
         .fecha-pill {
-            background-color: var(--bg-body); border: 1px solid var(--border-color);
-            color: var(--primary-color); font-weight: 600; padding: 6px 12px;
-            border-radius: 10px; white-space: nowrap; cursor: pointer;
-            display: flex; align-items: center; gap: 6px; font-size: 0.85em;
+            background-color: white; /* Blanco para contrastar con el fondo gris del display */
+            border: 1px solid #E2E8F0;
+            color: var(--secondary-color); font-weight: 600; 
+            padding: 6px 10px;
+            border-radius: 8px; white-space: nowrap; cursor: pointer;
+            display: flex; align-items: center; gap: 5px; font-size: 0.4em; /* Fuente pequeña relativa al display */
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
-        
-        .smart-desc-input {
-            flex-grow: 1; border: none; border-bottom: 1px dashed var(--border-color);
-            border-radius: 0; padding: 8px 0; font-size: 1.05em; background: transparent;
-            color: var(--text-main);
+        .fecha-pill i { font-size: 1.1em; color: var(--primary-color); }
+
+        /* Grupo Valor a la derecha */
+        .val-group { display: flex; align-items: center; gap: 5px; }
+
+        .btn-backspace-inline {
+            background: transparent; border: none; color: var(--danger-color);
+            font-size: 0.5em; cursor: pointer; padding: 5px; opacity: 0.6;
         }
-        .smart-desc-input:focus { outline: none; border-color: var(--primary-color); border-bottom-style: solid; }
 
         .payment-pills-row {
             display: flex; gap: 6px; 
@@ -240,22 +255,13 @@
             background-color: #EFF6FF; border-color: var(--primary-color);
             color: var(--primary-color); font-weight: bold;
         }
-
-        .smart-value-display {
-            font-size: 2.2em; /* Equilibrado */
-            font-weight: bold; color: var(--primary-color);
-            background-color: #F8FAFC; border: 1px solid #E2E8F0; 
-            border-radius: 12px;
-            padding: 2px 15px; 
-            margin: 0; letter-spacing: 0.5px;
-            display: flex; justify-content: space-between; align-items: center; 
-            min-height: 50px; 
-        }
         
-        .btn-backspace-inline {
-            background: transparent; border: none; color: var(--danger-color);
-            font-size: 0.5em; cursor: pointer; padding: 5px; opacity: 0.6;
+        .smart-desc-input {
+            flex-grow: 1; border: none; border-bottom: 1px dashed var(--border-color);
+            border-radius: 0; padding: 8px 0; font-size: 1.05em; background: transparent;
+            color: var(--text-main);
         }
+        .smart-desc-input:focus { outline: none; border-color: var(--primary-color); border-bottom-style: solid; }
         
         /* Grid Categorías */
         .smart-cat-grid {
@@ -354,16 +360,16 @@
             <div id="formulario-gasto" class="smart-input-container">
                 <h2 data-i18n="titleIngresoGasto" style="display:none">Ingreso</h2> 
                 
-                <div class="smart-row-top">
+                <div class="smart-value-display">
                     <button class="fecha-pill" id="smartFechaBtn" onclick="cambiarFechaSmart()">
                         <i class="far fa-calendar-alt"></i> <span id="smartFechaTexto">Hoy</span>
                     </button>
                     <input type="date" id="gastoFecha" style="display:none;">
-                </div>
 
-                <div class="smart-value-display">
-                    <span id="smartValueDisplay" style="width: 100%; text-align: right; margin-right: 10px;">0.00</span>
-                    <button class="btn-backspace-inline" onclick="tecladoPress('back')"><i class="fas fa-backspace"></i></button>
+                    <div class="val-group">
+                        <span id="smartValueDisplay">0.00</span>
+                        <button class="btn-backspace-inline" onclick="tecladoPress('back')"><i class="fas fa-backspace"></i></button>
+                    </div>
                 </div>
 
                 <div class="payment-pills-row">

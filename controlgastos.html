@@ -21,6 +21,9 @@
             --primary-color: #2563EB;
             --primary-dark: #1E3A8A;
             --success-color: #10B981;
+            --success-bg: #F0FDF4;
+            --success-border: #BBF7D0;
+            --success-text: #15803D;
             --danger-color: #EF4444;
             --secondary-color: #64748B;
             --bg-body: #F1F5F9;
@@ -38,6 +41,7 @@
             --nav-active: #2563EB;
             --safe-area-bottom: env(safe-area-inset-bottom, 0px);
             --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         @media (prefers-color-scheme: dark) {
@@ -45,6 +49,7 @@
                 --bg-body: #0F172A; --bg-card: #1E293B; --text-main: #F8FAFC;
                 --border-color: #334155; --nav-bg: #1E293B; --nav-active: #60A5FA;
                 --table-header-bg: #1E293B; --table-header-text: #CBD5E1; --table-zebra-bg: #0F172A;
+                --success-bg: #064E3B; --success-border: #065F46; --success-text: #D1FAE5;
             }
         }
 
@@ -58,6 +63,7 @@
         }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* --- ESTILOS GENERALES --- */
         h2, h3 { color: var(--text-main); text-align: center; }
@@ -92,6 +98,7 @@
         .btn-danger { background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); color: white; margin-top: 20px; }
         .btn-success { background-color: var(--success-color); color: white; }
         .btn-secondary { background-color: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); }
+        .btn-ghost { background: transparent; border: 1px dashed var(--border-color); color: var(--secondary-color); margin-top: 15px; font-size: 0.9em;}
 
         .export-buttons-container { display: flex; gap: 10px; margin-top: 15px; }
         .export-buttons-container button { margin-top: 0; }
@@ -187,50 +194,76 @@
         /* === ESTILOS EXCLUSIVOS PARA PANTALLA DE GASTO (COMPACTOS) === */
         /* ============================================================== */
         
-        #gasto { padding: 10px 15px; } 
+        #gasto { padding: 15px; } 
+
+        .input-card {
+            background-color: var(--bg-card);
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 15px;
+        }
         
-        .smart-input-container { display: flex; flex-direction: column; gap: 5px; }
+        .smart-input-container { display: flex; flex-direction: column; gap: 8px; }
         
-        #gasto h2 { font-size: 1.1em; margin: 5px 0 10px 0; }
+        #gasto h2 { font-size: 1.1em; margin: 0 0 10px 0; text-align: left; }
         
         .smart-row-top { display: flex; gap: 8px; align-items: center; }
         
         .fecha-pill {
-            background-color: var(--bg-card); border: 1px solid var(--primary-color);
-            color: var(--primary-color); font-weight: bold; padding: 6px 12px;
-            border-radius: 15px; white-space: nowrap; cursor: pointer;
-            display: flex; align-items: center; gap: 5px; font-size: 0.85em;
+            background-color: var(--bg-body); border: 1px solid var(--border-color);
+            color: var(--primary-color); font-weight: 600; padding: 6px 12px;
+            border-radius: 10px; white-space: nowrap; cursor: pointer;
+            display: flex; align-items: center; gap: 6px; font-size: 0.85em;
         }
         
         .smart-desc-input {
-            flex-grow: 1; border: none; border-bottom: 2px solid var(--border-color);
-            border-radius: 0; padding: 5px 0; font-size: 1em; background: transparent;
+            flex-grow: 1; border: none; border-bottom: 1px dashed var(--border-color);
+            border-radius: 0; padding: 8px 0; font-size: 1.05em; background: transparent;
+            color: var(--text-main);
         }
-        .smart-desc-input:focus { outline: none; border-color: var(--primary-color); }
+        .smart-desc-input:focus { outline: none; border-color: var(--primary-color); border-bottom-style: solid; }
+
+        .payment-pills-row {
+            display: flex; gap: 6px; margin: 4px 0 8px 0;
+        }
+        .payment-pills-row input { display: none; }
+        .payment-pills-row label {
+            flex: 1; font-size: 0.75em; padding: 4px 0;
+            border: 1px solid var(--border-color); border-radius: 20px;
+            color: var(--secondary-color); text-align: center;
+            background-color: var(--bg-body); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 4px;
+        }
+        .payment-pills-row input:checked + label {
+            background-color: #EFF6FF; border-color: var(--primary-color);
+            color: var(--primary-color); font-weight: bold;
+        }
 
         .smart-value-display {
-            font-size: 2.8em; font-weight: bold; color: var(--primary-color);
-            background-color: #F8FAFC; border: 2px solid #E2E8F0; 
-            border-radius: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-            padding: 5px 15px; margin: 8px 0; letter-spacing: 1px;
+            font-size: 2.5em; font-weight: bold; color: var(--primary-color);
+            background-color: #F8FAFC; border: 1px solid #E2E8F0; 
+            border-radius: 12px;
+            padding: 5px 15px; margin: 0; letter-spacing: 0.5px;
             display: flex; justify-content: space-between; align-items: center; 
-            min-height: 60px;
+            min-height: 55px;
         }
         
         .btn-backspace-inline {
             background: transparent; border: none; color: var(--danger-color);
-            font-size: 0.6em; cursor: pointer; padding: 5px; opacity: 0.6;
+            font-size: 0.5em; cursor: pointer; padding: 5px; opacity: 0.6;
         }
         
-        /* Grid Categorías: Scroll Horizontal 2 Filas */
+        /* Grid Categorías: Ajuste de Altura para 2 filas completas */
         .smart-cat-grid {
             display: grid;
             grid-template-rows: repeat(2, 1fr); 
             grid-auto-flow: column; 
-            gap: 8px; 
+            gap: 6px; 
             overflow-x: auto; overflow-y: hidden;
-            max-height: 95px; padding: 2px;
-            margin-bottom: 15px; 
+            max-height: 110px; /* Aumentado para ver 2 filas completas */
+            padding: 2px 0;
+            margin-bottom: 5px; 
             scrollbar-width: none; -ms-overflow-style: none;
         }
         .smart-cat-grid::-webkit-scrollbar { display: none; }
@@ -239,33 +272,71 @@
             grid-template-rows: auto; grid-auto-flow: row; 
             grid-template-columns: repeat(3, 1fr); 
             max-height: 250px; overflow-y: auto; overflow-x: hidden;
+            padding: 5px; border: 1px solid var(--border-color); border-radius: 8px;
         } 
         
         .cat-btn {
-            background-color: var(--bg-card); border: 1px solid var(--border-color);
-            color: var(--secondary-color); padding: 4px 8px; border-radius: 8px;
-            font-size: 0.8em; cursor: pointer; text-align: center;
+            background-color: var(--bg-body); border: 1px solid var(--border-color);
+            color: var(--secondary-color); padding: 4px 6px; border-radius: 8px;
+            font-size: 0.75em; cursor: pointer; text-align: center;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             height: 38px; display: flex; align-items: center; justify-content: center;
-            min-width: 85px; 
+            min-width: 80px; 
         }
         .cat-btn.selected {
             background-color: var(--primary-color); color: white; border-color: var(--primary-color);
             box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
         }
 
-        #gasto .payment-type-group label { padding: 6px 2px; font-size: 0.8em; }
-
         .keypad-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 5px;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 5px;
         }
         .key-btn {
-            background-color: var(--bg-card); border: 1px solid var(--border-color);
-            font-size: 1.2em; padding: 10px 0; border-radius: 10px;
-            color: var(--text-main); cursor: pointer; box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+            background-color: var(--bg-body); border: 1px solid var(--border-color);
+            font-size: 1.3em; padding: 12px 0; border-radius: 12px;
+            color: var(--text-main); cursor: pointer; box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+            font-weight: 500;
         }
-        .key-btn:active { transform: translateY(1px); box-shadow: none; background-color: #f1f5f9; }
+        .key-btn:active { transform: translateY(1px); box-shadow: none; background-color: #E2E8F0; }
         .key-btn-success { background-color: var(--success-color); color: white; border-color: var(--success-color); }
+
+        #contenedorUltimosGastos { display: none; margin-top: 15px; animation: fadeIn 0.3s ease; }
+        
+        /* ESTILOS TICKET DE CONFIRMACIÓN (FEEDBACK) */
+        .last-action-card {
+            background-color: var(--success-bg);
+            border: 1px solid var(--success-border);
+            border-radius: 12px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+            cursor: pointer;
+        }
+        .last-action-icon {
+            font-size: 1.5em;
+            color: var(--success-text);
+        }
+        .last-action-details {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        .last-action-title {
+            font-size: 0.75em;
+            color: var(--success-text);
+            text-transform: uppercase;
+            font-weight: bold;
+            opacity: 0.8;
+            margin-bottom: 2px;
+        }
+        .last-action-text {
+            font-size: 0.95em;
+            color: var(--text-main);
+            font-weight: 500;
+        }
         
     </style>
 </head>
@@ -275,66 +346,84 @@
     </div>
 
     <div id="gasto" class="pantalla activa">
-        <div id="formulario-gasto" class="smart-input-container">
-            <h2 data-i18n="titleIngresoGasto">Ingreso de Gasto</h2>
-            
-            <div class="smart-row-top">
-                <button class="fecha-pill" id="smartFechaBtn" onclick="cambiarFechaSmart()">
-                    <i class="far fa-calendar-alt"></i> <span id="smartFechaTexto">Hoy</span>
-                </button>
-                <input type="date" id="gastoFecha" style="display:none;">
-                
-                <input type="text" id="gastoDescripcion" class="smart-desc-input" placeholder="¿En qué gastaste?" autocomplete="off" list="sugerenciasDescripciones" onkeyup="predecirCategoria()">
-                <datalist id="sugerenciasDescripciones"></datalist>
-            </div>
-
-            <div class="smart-value-display">
-                <span id="smartValueDisplay" style="width: 100%; text-align: right; margin-right: 10px;">0.00</span>
-                <button class="btn-backspace-inline" onclick="tecladoPress('back')"><i class="fas fa-backspace"></i></button>
-            </div>
-            
-            <div id="smartCategories" class="smart-cat-grid"></div>
-            <input type="hidden" id="gastoCategoria" value=""> 
-            
-            <div class="payment-type-group">
-                <input type="radio" id="pagoContado" name="tipoPago" value="Contado" checked>
-                <label for="pagoContado"><i class="fas fa-coins"></i> <span data-i18n="lblContado">Contado</span></label>
-                <input type="radio" id="pagoTarjeta" name="tipoPago" value="Tarjeta">
-                <label for="pagoTarjeta"><i class="far fa-credit-card"></i> <span data-i18n="lblTarjeta">Tarjeta</span></label>
-                <input type="radio" id="pagoTransferencia" name="tipoPago" value="Transferencia">
-                <label for="pagoTransferencia"><i class="fas fa-mobile-alt"></i> <span data-i18n="lblTransf">Transf.</span></label>
-            </div>
-
-            <div class="keypad-grid">
-                <button class="key-btn" onclick="tecladoPress('1')">1</button>
-                <button class="key-btn" onclick="tecladoPress('2')">2</button>
-                <button class="key-btn" onclick="tecladoPress('3')">3</button>
-                <button class="key-btn" onclick="tecladoPress('4')">4</button>
-                <button class="key-btn" onclick="tecladoPress('5')">5</button>
-                <button class="key-btn" onclick="tecladoPress('6')">6</button>
-                <button class="key-btn" onclick="tecladoPress('7')">7</button>
-                <button class="key-btn" onclick="tecladoPress('8')">8</button>
-                <button class="key-btn" onclick="tecladoPress('9')">9</button>
-                <button class="key-btn" onclick="tecladoPress('.')">.</button>
-                <button class="key-btn" onclick="tecladoPress('0')">0</button>
-                <button class="key-btn key-btn-success" id="btnAddGasto" onclick="agregarGasto()">
-                    <i class="fas fa-check"></i>
-                </button>
-            </div>
-            <input type="hidden" id="gastoValor">
-        </div>
         
-        <h2 data-i18n="titleGastosMes" style="margin-top: 15px; font-size: 1.1em;">Últimos Gastos</h2>
-        <table id="tablaUltimosGastos" class="tabla-gastos">
-            <thead><tr><th data-i18n="colFecha">Fecha</th><th data-i18n="colDesc">Descripción</th><th style="text-align: right;" data-i18n="colValor">Valor</th></tr></thead>
-            <tbody></tbody>
-            <tfoot><tr><td colspan="2" data-i18n="lblTotal">TOTAL</td><td id="totalUltimosGastos" class="gasto-valor"></td></tr></tfoot>
-        </table>
-        <div class="pagination-controls" style="margin-bottom: 50px;">
-            <button class="btn btn-secondary" onclick="cambiarPaginaPrincipal(-1)">Ant</button>
-            <span id="pageInfoPrincipal">Pág 1</span>
-            <button class="btn btn-secondary" onclick="cambiarPaginaPrincipal(1)">Sig</button>
+        <div class="input-card">
+            <div id="formulario-gasto" class="smart-input-container">
+                <h2 data-i18n="titleIngresoGasto" style="display:none">Ingreso</h2> 
+                
+                <div class="smart-row-top">
+                    <button class="fecha-pill" id="smartFechaBtn" onclick="cambiarFechaSmart()">
+                        <i class="far fa-calendar-alt"></i> <span id="smartFechaTexto">Hoy</span>
+                    </button>
+                    <input type="date" id="gastoFecha" style="display:none;">
+                    
+                    <input type="text" id="gastoDescripcion" class="smart-desc-input" placeholder="¿En qué gastaste?" autocomplete="off" list="sugerenciasDescripciones" onkeyup="predecirCategoria()">
+                    <datalist id="sugerenciasDescripciones"></datalist>
+                </div>
+
+                <div class="payment-pills-row">
+                    <input type="radio" id="pagoContado" name="tipoPago" value="Contado" checked>
+                    <label for="pagoContado"><i class="fas fa-coins"></i> <span data-i18n="lblContado">Contado</span></label>
+                    <input type="radio" id="pagoTarjeta" name="tipoPago" value="Tarjeta">
+                    <label for="pagoTarjeta"><i class="far fa-credit-card"></i> <span data-i18n="lblTarjeta">Tarjeta</span></label>
+                    <input type="radio" id="pagoTransferencia" name="tipoPago" value="Transferencia">
+                    <label for="pagoTransferencia"><i class="fas fa-mobile-alt"></i> <span data-i18n="lblTransf">Transf.</span></label>
+                </div>
+
+                <div class="smart-value-display">
+                    <span id="smartValueDisplay" style="width: 100%; text-align: right; margin-right: 10px;">0.00</span>
+                    <button class="btn-backspace-inline" onclick="tecladoPress('back')"><i class="fas fa-backspace"></i></button>
+                </div>
+                
+                <div id="smartCategories" class="smart-cat-grid"></div>
+                <input type="hidden" id="gastoCategoria" value=""> 
+
+                <div class="keypad-grid">
+                    <button class="key-btn" onclick="tecladoPress('1')">1</button>
+                    <button class="key-btn" onclick="tecladoPress('2')">2</button>
+                    <button class="key-btn" onclick="tecladoPress('3')">3</button>
+                    <button class="key-btn" onclick="tecladoPress('4')">4</button>
+                    <button class="key-btn" onclick="tecladoPress('5')">5</button>
+                    <button class="key-btn" onclick="tecladoPress('6')">6</button>
+                    <button class="key-btn" onclick="tecladoPress('7')">7</button>
+                    <button class="key-btn" onclick="tecladoPress('8')">8</button>
+                    <button class="key-btn" onclick="tecladoPress('9')">9</button>
+                    <button class="key-btn" onclick="tecladoPress('.')">.</button>
+                    <button class="key-btn" onclick="tecladoPress('0')">0</button>
+                    <button class="key-btn key-btn-success" id="btnAddGasto" onclick="agregarGasto()">
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+                <input type="hidden" id="gastoValor">
+            </div>
         </div>
+
+        <div id="feedbackUltimoGasto" class="last-action-card" style="display:none;" onclick="toggleTablaGastos()">
+            <div class="last-action-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="last-action-details">
+                <span class="last-action-title" data-i18n="msgGastoGuardado">Gasto Guardado</span>
+                <span id="feedbackTexto" class="last-action-text"></span>
+            </div>
+            <div style="color: var(--secondary-color); font-size: 0.8em;"><i class="fas fa-chevron-down"></i></div>
+        </div>
+
+        <button class="btn btn-ghost" id="btnToggleGastos" onclick="toggleTablaGastos()">
+            ⬇️ <span data-i18n="titleGastosMes">Últimos Gastos</span>
+        </button>
+        
+        <div id="contenedorUltimosGastos">
+            <table id="tablaUltimosGastos" class="tabla-gastos">
+                <thead><tr><th data-i18n="colFecha">Fecha</th><th data-i18n="colDesc">Descripción</th><th style="text-align: right;" data-i18n="colValor">Valor</th></tr></thead>
+                <tbody></tbody>
+                <tfoot><tr><td colspan="2" data-i18n="lblTotal">TOTAL</td><td id="totalUltimosGastos" class="gasto-valor"></td></tr></tfoot>
+            </table>
+            <div class="pagination-controls" style="margin-bottom: 20px;">
+                <button class="btn btn-secondary" onclick="cambiarPaginaPrincipal(-1)">Ant</button>
+                <span id="pageInfoPrincipal">Pág 1</span>
+                <button class="btn btn-secondary" onclick="cambiarPaginaPrincipal(1)">Sig</button>
+            </div>
+        </div>
+
     </div>
     
     <div id="mensual" class="pantalla">
@@ -550,11 +639,12 @@ const TRADUCTIONS = {
         btnAnterior: "Ant", btnSiguiente: "Sig", btnCsvMes: "Excel", titleResumenAnual: "Resumen Anual",
         titleTotalCatAnio: "Total Año", btnCsvAnio: "Excel", menuConfig: "Config",
         lblMoneda: "Moneda:", lblIdioma: "Idioma:", titleCategorias: "Categorías", colNombre: "Nombre", colAccion: "Acción",
-        phNueva: "Nueva Categoría", titleDatos: "Datos", btnBackup: "⬆️ Backup", btnImportar: "⬇️ Importar",
+        phNueva: "Nueva Categoría", titleDatos: "Datos", btnBackup: "⬆️ Backup", btnImportar: "⬇️ Import",
         btnBorrarTodo: "⚠️ Borrar Todo", titleEditar: "Editar", btnGuardar: "Guardar", btnBorrar: "Borrar", btnCancelar: "Cancelar",
         titleRenombrar: "Renombrar", titleConfirmar: "Confirmar", btnSi: "Sí", btnNo: "No",
         menuGasto: "Gasto", menuMes: "Mes", menuAnio: "Año", 
-        btnCargado: "¡Cargado!" 
+        btnCargado: "¡Cargado!",
+        msgGastoGuardado: "Gasto Guardado"
     },
     en: {
         alertMissing: "Missing fields.", alertGuardado: "Saved!",
@@ -579,7 +669,8 @@ const TRADUCTIONS = {
         btnBorrarTodo: "⚠️ Delete All", titleEditar: "Edit", btnGuardar: "Save", btnBorrar: "Delete", btnCancelar: "Cancel",
         titleRenombrar: "Rename", titleConfirmar: "Confirm", btnSi: "Yes", btnNo: "No",
         menuGasto: "Expense", menuMes: "Month", menuAnio: "Year",
-        btnCargado: "Loaded!"
+        btnCargado: "Loaded!",
+        msgGastoGuardado: "Expense Saved"
     }
 };
 
@@ -764,6 +855,13 @@ function tecladoPress(key) {
     } else if (key === '.') {
         if (!smartValorInput.includes('.')) smartValorInput += '.';
     } else {
+        // --- CONTROL DE DECIMALES (MÁXIMO 2) ---
+        if (smartValorInput.includes('.')) {
+            const [entero, decimales] = smartValorInput.split('.');
+            // Si ya existen 2 decimales, no permitir ingresar más números
+            if (decimales.length >= 2) return; 
+        }
+        
         if (smartValorInput === "0") smartValorInput = key;
         else {
             if(smartValorInput.length < 10) smartValorInput += key; 
@@ -808,15 +906,38 @@ function aplicarIdioma() {
 
 function inicializarUI() {
     mostrarPantalla('gasto', document.querySelector('.nav-tabs button.active'));
+    
+    // ==========================================================
+    // === LÓGICA DE CIERRE INTELIGENTE DEL GRID DE CATEGORÍAS ===
+    // ==========================================================
     window.onclick = (e) => {
+        // Manejo de Modales
         if (e.target == document.getElementById('modalEdicion')) cerrarModal();
         if (e.target == document.getElementById('modalEdicionCategoria')) cerrarModalCategoria();
         if (e.target == document.getElementById('modalConfirmacion')) cerrarModalConfirmacion();
         
-        if (!e.target.closest('.smart-cat-grid') && !e.target.closest('#gastoDescripcion') && !e.target.closest('.cat-btn')) {
-             document.getElementById('smartCategories').classList.remove('expanded');
+        // Manejo del Grid de Categorías
+        const grid = document.getElementById('smartCategories');
+        const clickInGrid = e.target.closest('.smart-cat-grid') || e.target.closest('.cat-btn');
+        const clickInDesc = e.target.closest('#gastoDescripcion');
+        
+        // Verificamos si tenemos una categoría seleccionada O si la descripción está vacía
+        const hasCategory = document.getElementById('gastoCategoria').value !== "";
+        const hasDescription = document.getElementById('gastoDescripcion').value.trim().length > 0;
+
+        // Si el clic fue FUERA del grid Y FUERA del input de descripción
+        if (!clickInGrid && !clickInDesc) {
+            // Solo cerramos si:
+            // 1. Ya hay categoría seleccionada (es seguro cerrar).
+            // 2. O la descripción está vacía (el usuario está divagando sin escribir).
+            // PERO SI: No hay categoría Y hay descripción escrita -> MANTENER ABIERTO.
+            if (hasCategory || !hasDescription) {
+                grid.classList.remove('expanded');
+            }
         }
     };
+    // ==========================================================
+
     document.getElementById('inputImportar').addEventListener('change', importarDatos);
     document.querySelectorAll('input[name="filtroTipoPagoMensual"]').forEach(r => {
         r.addEventListener('change', (e) => { filtroPagoMensual = e.target.value; actualizarResumenMensual(); });
@@ -946,6 +1067,14 @@ function agregarGasto() {
     guardarGastos();
     inicializarSelectoresMesAnio();
 
+    // --- NUEVO FEEDBACK VISUAL ---
+    const feedbackDiv = document.getElementById('feedbackUltimoGasto');
+    const feedbackTxt = document.getElementById('feedbackTexto');
+    // Muestra: Categoría - Descripción: $Valor
+    feedbackTxt.textContent = `${cat} - ${desc}: ${formatearMoneda(val)}`;
+    feedbackDiv.style.display = 'flex';
+    // ----------------------------
+
     document.getElementById('gastoDescripcion').value = '';
     smartValorInput = "0";
     actualizarDisplayValor();
@@ -968,6 +1097,21 @@ function agregarGasto() {
     
     actualizarResumenMensual();
     actualizarResumenHistorico();
+}
+
+function toggleTablaGastos() {
+    const contenedor = document.getElementById('contenedorUltimosGastos');
+    const btn = document.getElementById('btnToggleGastos');
+    
+    if (contenedor.style.display === 'block') {
+        contenedor.style.display = 'none';
+        btn.innerHTML = `⬇️ <span data-i18n="titleGastosMes">${TRADUCTIONS[config.idioma].titleGastosMes}</span>`;
+    } else {
+        contenedor.style.display = 'block';
+        btn.innerHTML = `⬆️ <span data-i18n="titleGastosMes">${TRADUCTIONS[config.idioma].titleGastosMes}</span>`;
+        // Scroll suave hacia abajo
+        setTimeout(() => contenedor.scrollIntoView({behavior: "smooth"}), 100);
+    }
 }
 
 function actualizarResumenMensual() {
@@ -1206,7 +1350,7 @@ function inicializarSelectoresMesAnio() {
         sh.add(new Option(y, y));
     });
     
-    MONTH_NAMES_FULL[config.idioma].forEach((m,i) => sm.add(new Option(m,i+1)));
+    MONTH_NAMES_FULL[config.idioma].forEach((m, i) => sm.add(new Option(m, i+1)));
 
     const hoy = new Date();
     sm.value = hoy.getMonth() + 1;

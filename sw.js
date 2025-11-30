@@ -1,4 +1,4 @@
-const CACHE_NAME = 'control-gastos-cache-v18'; // ¡VERSIÓN ACTUALIZADA!
+const CACHE_NAME = 'control-gastos-cache-v19'; // ¡VERSIÓN ACTUALIZADA!
 // Lista de archivos base para que la app funcione offline.
 const urlsToCache = [
   './',
@@ -70,6 +70,7 @@ self.addEventListener('activate', (event) => {
   );
 
 });
+
 
 
 

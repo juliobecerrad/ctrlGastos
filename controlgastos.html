@@ -192,7 +192,7 @@
         #toast.error { background-color: var(--danger-color); }
 
         /* ============================================================== */
-        /* === ESTILOS EXCLUSIVOS PARA PANTALLA DE GASTO === */
+        /* === ESTILOS EXCLUSIVOS PARA PANTALLA DE GASTO (OPTIMIZADO) === */
         /* ============================================================== */
         
         #gasto { padding: 15px; } 
@@ -290,10 +290,23 @@
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             height: 38px; display: flex; align-items: center; justify-content: center;
             min-width: 80px; 
+            transition: all 0.2s;
         }
         .cat-btn.selected {
             background-color: var(--primary-color); color: white; border-color: var(--primary-color);
             box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+        }
+        /* Animación Flash Categoría */
+        @keyframes pulse-blue {
+            0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); transform: scale(1); }
+            50% { box-shadow: 0 0 0 6px rgba(37, 99, 235, 0); transform: scale(1.05); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); transform: scale(1); }
+        }
+        .cat-btn.flash {
+            animation: pulse-blue 0.4s ease-out;
+            border-color: var(--primary-color) !important;
+            background-color: var(--primary-color) !important;
+            color: white !important;
         }
 
         .keypad-grid {
@@ -332,7 +345,7 @@
             width: 100%;
             overflow-x: auto;
             margin-bottom: 15px;
-            display: none; /* Se oculta por defecto, se activa vía JS si es vista Anual */
+            display: none; /* Se oculta por defecto */
             border: 1px solid var(--border-color);
             border-radius: 8px;
             background: var(--bg-body);
@@ -343,7 +356,6 @@
             padding: 10px;
             background-color: var(--bg-card);
         }
-        
     </style>
 </head>
 <body>
@@ -619,8 +631,6 @@
         <button onclick="mostrarPantalla('configuracion', this)"><i class="fas fa-cog"></i><span data-i18n="menuConfig">Config</span></button>
     </div>
 
-</body>
-
 <script>
 // ==========================================
 // 1. CONFIGURACIÓN Y TRADUCCIONES
@@ -740,11 +750,8 @@ function cargarDatos() {
         gastos.sort(sortData);
         descripcionesUsadas = [...new Set(gastos.map(g => g.descripcion))];
         
-        // Configurar Inputs
-        const confMoneda = document.getElementById('configMoneda');
-        const confIdioma = document.getElementById('configIdioma');
-        if(confMoneda) confMoneda.value = config.moneda;
-        if(confIdioma) confIdioma.value = config.idioma;
+        document.getElementById('configMoneda').value = config.moneda;
+        document.getElementById('configIdioma').value = config.idioma;
         
         establecerFechaHoy();
         actualizarSelectCategorias(); 
@@ -753,9 +760,10 @@ function cargarDatos() {
         inicializarSelectoresMesAnio(); 
         aplicarIdioma();
         
-        // Renderizado Inicial UI
         renderizarCategoriasSmart();
         actualizarDisplayValor();
+        
+        // Renderizado inicial seguro
         renderizarGastosDelMes();
         actualizarResumenMensual();
         actualizarResumenHistorico();
@@ -776,7 +784,6 @@ function inicializarUI() {
         descInput.addEventListener('input', function(e) { if (descripcionesUsadas.includes(this.value)) this.blur(); });
     }
 
-    // Listeners Globales
     window.onclick = (e) => {
         if (e.target == document.getElementById('modalEdicion')) cerrarModal();
         if (e.target == document.getElementById('modalEdicionCategoria')) cerrarModalCategoria();
@@ -872,6 +879,7 @@ function abrirModalDetalle(cat, listaOriginal) {
     if (isYearView) {
         chartContainer.style.display = 'block';
         renderModalChart(cat, listaOriginal); 
+        // AUTO-SCROLL AL FINAL (Meses recientes)
         setTimeout(() => { if(chartContainer) chartContainer.scrollLeft = chartContainer.scrollWidth; }, 100);
     } else {
         chartContainer.style.display = 'none';
@@ -1074,7 +1082,6 @@ function actualizarResumenHistorico(resetCategoria = false) {
     
     actualizarGraficoCategorias(graficos, 'chartHistoricoCanvas', 'historico', `Resumen Año ${anio}`);
     
-    // Título dinámico para el gráfico de barras principal
     const tituloBarras = config.idioma === 'es' ? `Evolución Mensual ${anio}` : `Monthly Evolution ${anio}`;
     actualizarGraficoGastosPorMes(graficos, tituloBarras);
 }
@@ -1132,6 +1139,14 @@ function predecirCategoria() {
     const coincidencia = gastos.find(g => g.descripcion.toLowerCase().startsWith(texto));
     if (coincidencia) {
         seleccionarCategoriaSmart(coincidencia.categoria);
+        const buttons = container.getElementsByClassName('cat-btn');
+        for (let btn of buttons) {
+            if (btn.textContent === coincidencia.categoria) {
+                btn.classList.add('flash');
+                setTimeout(() => btn.classList.remove('flash'), 400);
+                break;
+            }
+        }
         container.classList.remove('expanded'); 
     } else {
         document.getElementById('gastoCategoria').value = "";
@@ -1353,7 +1368,6 @@ function abrirModalEdicion(id) {
     document.getElementById('modalEdicion').style.display='block';
 }
 function cerrarModal() { document.getElementById('modalEdicion').style.display='none'; gastoEditandoId=null; }
-
 function guardarEdicionDesdeModal() {
     const g = gastos.find(x => x.id === gastoEditandoId);
     if(g) {
@@ -1361,9 +1375,7 @@ function guardarEdicionDesdeModal() {
         g.categoria = document.getElementById('modalCategoria').value;
         g.descripcion = sanitizar(document.getElementById('modalDescripcion').value);
         g.valor = parsearValor(document.getElementById('modalValor').value);
-        const pagoEl = document.querySelector('input[name="modalTipoPago"]:checked');
-        g.tipoPago = pagoEl ? pagoEl.value : 'Contado';
-        
+        g.tipoPago = document.querySelector('input[name="modalTipoPago"]:checked').value;
         gastos.sort(sortData); guardarGastos(); 
         try {
             actualizarResumenMensual(); actualizarResumenHistorico(); renderizarGastosDelMes(); 
@@ -1371,7 +1383,6 @@ function guardarEdicionDesdeModal() {
         cerrarModal(); 
     }
 }
-
 function confirmarEliminarGasto() { 
     mostrarModalConfirmacion(TRADUCTIONS[config.idioma].confirmDelete, () => { 
         gastos = gastos.filter(g => g.id !== gastoEditandoId); 
@@ -1417,23 +1428,22 @@ function confirmarEliminarCategoria(i) {
 function mostrarModalConfirmacion(t, cb) { document.getElementById('modalConfirmBody').textContent=t; confirmCallback=cb; document.getElementById('modalConfirmacion').style.display='block'; }
 function ejecutarConfirmacion() { if(confirmCallback) { try { confirmCallback(); } catch(e) { console.error("Error en confirmacion:", e); } } cerrarModalConfirmacion(); }
 function cerrarModalConfirmacion() { document.getElementById('modalConfirmacion').style.display='none'; }
+function confirmarLimpiarTodosLosDatos(){ mostrarModalConfirmacion(TRADUCTIONS[config.idioma].confirmDeleteAll, ()=>{localStorage.clear(); location.reload();}); }
 
 function inicializarSelectoresMesAnio() {
     const sm = document.getElementById('filtroMes'); const sa = document.getElementById('filtroAnioMensual'); const sh = document.getElementById('filtroAnioHistorico');
     if(!sm || !sa || !sh) return;
     sm.innerHTML=''; sa.innerHTML=''; sh.innerHTML='';
+    const dataYears = gastos.map(g => parseInt(g.fecha.split('-')[0]));
     const currentYear = new Date().getFullYear();
-    let minYear = currentYear, maxYear = currentYear;
-    if(gastos.length > 0) {
-        const years = gastos.map(g => { if(!g.fecha) return currentYear; const parts = g.fecha.split('-'); return parts.length > 0 ? parseInt(parts[0]) : currentYear; }).filter(y => !isNaN(y));
-        if(years.length > 0) { minYear = Math.min(...years); maxYear = Math.max(...years, 2030); }
-    } else { maxYear = 2030; }
+    const minYear = dataYears.length ? Math.min(...dataYears, currentYear) : currentYear;
+    const maxYear = Math.max(...dataYears, 2030);
     for(let y = maxYear; y >= minYear; y--) { sa.add(new Option(y, y)); sh.add(new Option(y, y)); }
     MONTH_NAMES_FULL[config.idioma].forEach((m, i) => sm.add(new Option(m, i+1)));
     const hoy = new Date(); sm.value = hoy.getMonth() + 1; sa.value = hoy.getFullYear(); sh.value = hoy.getFullYear();
 }
 
-// --- GRÁFICOS ---
+// --- GRÁFICOS (GESTIÓN SEGURA) ---
 function actualizarGraficoCategorias(l, c, key, title = '') {
     const ctx=document.getElementById(c).getContext('2d');
     const d={}; let totalChart = 0; l.forEach(g=> { d[g.categoria]=(d[g.categoria]||0)+g.valor; totalChart += g.valor; });
@@ -1447,8 +1457,12 @@ function actualizarGraficoCategorias(l, c, key, title = '') {
             responsive:true, maintainAspectRatio:false, 
             plugins:{ 
                 legend:{display:false}, 
-                datalabels: { color: 'white', font: { weight: 'bold', size: 12 }, display: function(context) { return (context.dataset.data[context.dataIndex] / totalChart) > 0.04; }, formatter: (value) => { return (value * 100 / totalChart).toFixed(0) + "%"; } }, 
-                title: { display: !!title, text: title, font: { size: 14 } } 
+                datalabels: { 
+                    color: 'white', font: { weight: 'bold', size: 12 }, 
+                    display: function(context) { return (context.dataset.data[context.dataIndex] / totalChart) > 0.04; }, 
+                    formatter: (value) => { return (value * 100 / totalChart).toFixed(0) + "%"; } 
+                },
+                title: { display: !!title, text: title, font: { size: 14 } }
             } 
         } 
     });
@@ -1461,17 +1475,16 @@ function actualizarGraficoGastosPorMes(l, titulo = '') {
     if(chartInstances.historicoMeses) chartInstances.historicoMeses.destroy();
     
     chartInstances.historicoMeses = new Chart(ctx, { 
-        type:'bar', 
-        data:{ labels:MONTH_NAMES_FULL[config.idioma].map(m=>m.substr(0,3)), datasets:[{data:md, backgroundColor:'#2563EB'}] }, 
-        options:{ 
-            responsive:true, maintainAspectRatio:false, 
-            plugins:{ 
-                legend:{display:false}, datalabels: { display: false },
-                title: { display: !!titulo, text: titulo, font: { size: 14 } } 
+        type: 'bar', 
+        data: { labels: MONTH_NAMES_FULL[config.idioma].map(m => m.substr(0, 3)), datasets: [{ data: md, backgroundColor: '#2563EB' }] }, 
+        options: { 
+            responsive: true, maintainAspectRatio: false, 
+            plugins: { 
+                legend: { display: false }, 
+                datalabels: { display: false },
+                title: { display: !!titulo, text: titulo, font: { size: 14 } }
             } 
         } 
     });
 }
 </script>
-
-</html>

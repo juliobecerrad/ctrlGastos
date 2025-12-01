@@ -1,5 +1,5 @@
-const CACHE_NAME = 'control-gastos-cache-v23'; // ¡VERSIÓN ACTUALIZADA!
-// Lista de archivos base para que la app funcione offline.
+const CACHE_NAME = 'control-gastos-cache-v1'; 
+
 const urlsToCache = [
   './',
   'controlgastos.html', 
@@ -8,10 +8,12 @@ const urlsToCache = [
   'icon-512.png',       
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css',
   'https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js',
-  'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0'
+  'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js'
 ];
 
-// 1. Evento de Instalación
+// 1. INSTALACIÓN
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -22,30 +24,24 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 2. Evento de Fetch: Estrategia "Cache First"
+// 2. FETCH (CACHE FIRST STRATEGY)
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Si la respuesta está en el caché, la devuelve
         if (response) {
           return response;
         }
-
-        // Si no, la busca en la red (Cache, then Network)
         return fetch(event.request).then(
           (response) => {
             if (!response || response.status !== 200 || (response.type !== 'basic' && response.type !== 'cors')) {
               return response;
             }
-
             const responseToCache = response.clone();
-
             caches.open(CACHE_NAME)
               .then((cache) => {
                 cache.put(event.request, responseToCache);
               });
-
             return response;
           }
         );
@@ -53,7 +49,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// 3. Evento de Activación: Limpia cachés antiguos
+// 3. ACTIVACIÓN (LIMPIEZA)
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -61,28 +57,10 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
-            // Elimina cachés que no están en la lista blanca (los antiguos)
             return caches.delete(cacheName);
           }
         })
       );
     })
   );
-
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

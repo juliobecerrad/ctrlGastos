@@ -2,7 +2,7 @@
   "name": "Control de Gastos",
   "short_name": "Gastos",
   "description": "Aplicación de control de gastos personales.",
-  "start_url": "./controlgastos.html",  // <--- CAMBIO AQUÍ (antes era controlgastos.html)
+  "start_url": "./controlgastos.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#007bff",
